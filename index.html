@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>北へ — 花鳥風月のセレクトショップ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
+.stage{position:relative;width:100%;height:340px;overflow:hidden;background:#2a3a2a;}
+.stage-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 2.5s ease;}
+.stage-img.active{opacity:1;}
+.stage-top{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;padding:0 22px;}
+.logo{font-size:16px;font-weight:500;color:rgba(255,255,255,0.9);letter-spacing:0.08em;}
+.sky-info{text-align:right;font-size:11px;color:rgba(255,255,255,0.7);line-height:1.8;letter-spacing:0.04em;}
+.dots{position:absolute;bottom:14px;right:18px;display:flex;gap:6px;}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.35);cursor:pointer;transition:background 0.3s;}
+.dot.on{background:rgba(255,255,255,0.9);}
+.colm{padding:18px 22px 16px;border-bottom:1px solid #e8e4de;background:#fff;}
+.colm-theme{font-size:11px;color:#888;letter-spacing:0.12em;margin-bottom:6px;}
+.colm-word{font-size:28px;font-weight:500;color:#2a2a2a;letter-spacing:0.06em;display:inline;margin-right:12px;}
+.colm-read{font-size:12px;color:#888;letter-spacing:0.06em;display:inline;}
+.colm-text{font-size:13px;color:#666;line-height:1.7;margin-top:7px;}
+.cycle{display:flex;justify-content:center;gap:6px;padding:10px 22px;background:#fff;border-bottom:1px solid #e8e4de;}
+.ci{font-size:11px;padding:3px 10px;border-radius:12px;color:#888;border:1px solid #e0ddd8;}
+.ci.today{background:#e8f4f0;color:#0F6E56;border-color:#9FE1CB;font-weight:500;}
+.util{display:flex;justify-content:center;gap:20px;padding:8px 22px 10px;border-bottom:1px solid #e8e4de;background:#fff;}
+.ul{font-size:12px;color:#888;text-decoration:none;display:flex;align-items:center;gap:4px;}
+.ul:hover{color:#2a2a2a;}
+.doors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 22px 6px;background:#faf9f7;}
+.doors2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 22px 18px;background:#faf9f7;}
+.door{background:#fff;border:1px solid #e8e4de;border-radius:12px;padding:13px 8px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.door:hover{border-color:#ccc;background:#f5f5f5;}
+.di{font-size:18px;color:#888;margin-bottom:5px;}
+.dl{font-size:11px;color:#666;line-height:1.4;}
+.news-screen{background:#fff;display:none;}
+.news-screen.show{display:block;}
+.top-screen{background:#faf9f7;}
+.top-screen.hide{display:none;}
+.news-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #e8e4de;}
+.back-btn{font-size:12px;color:#888;cursor:pointer;display:flex;align-items:center;gap:4px;background:none;border:none;padding:0;}
+.news-title{font-size:15px;font-weight:500;color:#2a2a2a;}
+.news-tabs{display:flex;gap:0;border-bottom:1px solid #e8e4de;padding:0 20px;overflow-x:auto;}
+.ntab{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;color:#888;white-space:nowrap;}
+.ntab.on{color:#0F6E56;border-bottom-color:#0F6E56;font-weight:500;}
+.news-list{padding:0 20px;}
+.ni{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #e8e4de;cursor:pointer;}
+.ni:last-child{border-bottom:none;}
+.nth{width:56px;height:42px;border-radius:8px;background:#f0f0f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.nb{flex:1;min-width:0;}
+.ntag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-bottom:3px;font-weight:500;}
+.tg-bird{background:#E1F5EE;color:#0F6E56;}
+.tg-flora{background:#FBEAF0;color:#993556;}
+.tg-sky{background:#E6F1FB;color:#185FA5;}
+.tg-art{background:#FAEEDA;color:#854F0B;}
+.tg-world{background:#EEEDFE;color:#534AB7;}
+.ntitle{font-size:13px;color:#2a2a2a;line-height:1.35;margin-bottom:2px;}
+.nmeta{font-size:10px;color:#888;}
+</style>
+</head>
+<body>
+
+<div class="top-screen" id="top">
+  <div class="stage">
+    <img class="stage-img active" src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=900&q=80" alt="青葉"/>
+    <img class="stage-img" src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=900&q=80" alt="森"/>
+    <img class="stage-img" src="https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=900&q=80" alt="草原"/>
+    <div class="stage-top">
+      <div class="logo">北へ</div>
+      <div class="sky-info" id="skyInfo">読み込み中...</div>
+    </div>
+    <div class="dots">
+      <div class="dot on" onclick="goTo(0)"></div>
+      <div class="dot" onclick="goTo(1)"></div>
+      <div class="dot" onclick="goTo(2)"></div>
+    </div>
+  </div>
+
+  <div class="colm">
+    <div class="colm-theme" id="todayTheme">今日の風</div>
+    <span class="colm-word" id="todayWord">薫風</span>
+    <span class="colm-read" id="todayRead">くんぷう</span>
+    <div class="colm-text" id="todayText">初夏の青葉の香りを運ぶ、南から吹く風。今日外に出る機会があったら、風の匂いを少しだけ意識してみてください。</div>
+  </div>
+
+  <div class="cycle" id="cycleRow"></div>
+
+  <div class="util">
+    <a href="mailto:" class="ul"><i class="ti ti-mail" style="font-size:14px"></i>メール</a>
+    <a href="https://weathernews.jp/" target="_blank" class="ul"><i class="ti ti-cloud" style="font-size:14px"></i>天気</a>
+    <a href="https://calendar.google.com/" target="_blank" class="ul"><i class="ti ti-calendar" style="font-size:14px"></i>カレンダー</a>
+  </div>
+
+  <div class="doors">
+    <div class="door" id="newsBtn" onclick="showNews()">
+      <div class="di"><i class="ti ti-news"></i></div>
+      <div class="dl">花鳥風月<br>ニュース</div>
+    </div>
+    <div class="door" onclick="alert('前線マップは毎週月曜日に更新されます')">
+      <div class="di"><i class="ti ti-map"></i></div>
+      <div class="dl">今週の<br>前線</div>
+    </div>
+    <div class="door" onclick="alert('今週の三冊は毎週月曜日に更新されます')">
+      <div class="di"><i class="ti ti-book"></i></div>
+      <div class="dl">今週の<br>三冊</div>
+    </div>
+  </div>
+  <div class="doors2">
+    <div class="door" onclick="alert('展示情報は毎週月曜日に更新されます')">
+      <div class="di"><i class="ti ti-building"></i></div>
+      <div class="dl">展示・<br>寺社</div>
+    </div>
+    <div class="door" onclick="window.open('https://www.jalan.net','_blank')">
+      <div class="di"><i class="ti ti-bed"></i></div>
+      <div class="dl">旅先の<br>宿を探す</div>
+    </div>
+    <div class="door" onclick="window.open('https://hitoriiselecture.com','_blank')">
+      <div class="di"><i class="ti ti-shoe"></i></div>
+      <div class="dl">ひとり<br>伊勢講</div>
+    </div>
+  </div>
+</div>
+
+<div class="news-screen" id="newsPage">
+  <div class="news-header">
+    <button class="back-btn" onclick="showTop()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
+    <div class="news-title">花鳥風月ニュース</div>
+  </div>
+  <div class="news-tabs">
+    <div class="ntab on">すべて</div>
+    <div class="ntab">野鳥</div>
+    <div class="ntab">草花</div>
+    <div class="ntab">空・気象</div>
+    <div class="ntab">美術・文化</div>
+    <div class="ntab">世界</div>
+  </div>
+  <div class="news-list">
+    <div class="ni">
+      <div class="nth">🦅</div>
+      <div class="nb">
+        <span class="ntag tg-bird">野鳥</span>
+        <div class="ntitle">ハチクマの渡り、今年も伊良湖岬で1万羽超の記録</div>
+        <div class="nmeta">本日 · 日本野鳥の会</div>
+      </div>
+    </div>
+    <div class="ni">
+      <div class="nth">🌸</div>
+      <div class="nb">
+        <span class="ntag tg-flora">草花</span>
+        <div class="ntitle">紫陽花前線、今週末に関東へ。箱根・高幡不動尊が見頃に</div>
+        <div class="nmeta">本日 · ウェザーニュース</div>
+      </div>
+    </div>
+    <div class="ni">
+      <div class="nth">🌙</div>
+      <div class="nb">
+        <span class="ntag tg-sky">空・気象</span>
+        <div class="ntitle">今夜の月齢7.2、梅雨の晴れ間に上弦の月が見えます</div>
+        <div class="nmeta">昨日 · 国立天文台</div>
+      </div>
+    </div>
+    <div class="ni">
+      <div class="nth">🖼️</div>
+      <div class="nb">
+        <span class="ntag tg-art">美術・文化</span>
+        <div class="ntitle">東京国立博物館「鳥獣戯画と日本の漫画」入場者50万人突破</div>
+        <div class="nmeta">2日前 · 東京国立博物館</div>
+      </div>
+    </div>
+    <div class="ni">
+      <div class="nth">🦩</div>
+      <div class="nb">
+        <span class="ntag tg-world">世界</span>
+        <div class="ntitle">ケニア・ナクル湖、フラミンゴが120万羽のコロニーを形成</div>
+        <div class="nmeta">3日前 · Daily Nation</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const imgs = document.querySelectorAll('.stage-img');
+const dots = document.querySelectorAll('.dot');
+let cur = 0;
+function goTo(n) {
+  imgs[cur].classList.remove('active'); dots[cur].classList.remove('on');
+  cur = n % imgs.length;
+  imgs[cur].classList.add('active'); dots[cur].classList.add('on');
+}
+setInterval(() => goTo((cur+1) % imgs.length), 6000);
+
+function showNews() {
+  document.getElementById('top').classList.add('hide');
+  document.getElementById('newsPage').classList.add('show');
+}
+function showTop() {
+  document.getElementById('newsPage').classList.remove('show');
+  document.getElementById('top').classList.remove('hide');
+}
+
+const days = ['日','月','火','水','木','金','土'];
+const themes = ['月','花','鳥','風','月','花','鳥'];
+const words = [
+  {theme:'今日の月', word:'月齢7', read:'じょうげんのつき', text:'上弦の月が西の空に見えます。月の半分が光る夜。'},
+  {theme:'今日の花', word:'薔薇', read:'ばら', text:'6月はバラの季節。香りの強い品種は朝が一番香ります。'},
+  {theme:'今日の鳥', word:'郭公', read:'かっこう', text:'カッコウの声が聞こえたら夏の始まり。オスだけが鳴きます。'},
+  {theme:'今日の風', word:'薫風', read:'くんぷう', text:'初夏の青葉の香りを運ぶ南風。風の匂いを意識してみてください。'},
+  {theme:'今日の月', word:'芒種', read:'ぼうしゅ', text:'稲や麦を植える季節。ホタルが飛び始める頃。'},
+  {theme:'今日の花', word:'紫陽花', read:'あじさい', text:'梅雨の花。土の酸度で色が変わる不思議な花です。'},
+  {theme:'今日の鳥', word:'時鳥', read:'ほととぎす', text:'夜も鳴くホトトギス。その声は「東京特許許可局」。'},
+];
+
+const now = new Date();
+const dow = now.getDay();
+const w = words[dow];
+document.getElementById('todayTheme').textContent = w.theme;
+document.getElementById('todayWord').textContent = w.word;
+document.getElementById('todayRead').textContent = w.read;
+document.getElementById('todayText').textContent = w.text;
+
+const month = now.getMonth()+1;
+const date = now.getDate();
+const hour = now.getHours();
+const dayName = days[dow];
+document.getElementById('skyInfo').innerHTML = 
+  `${now.getFullYear()}年${month}月${date}日（${dayName}）芒種<br>日の出 4:28　日没 18:52　月齢 7.2`;
+
+const cycleRow = document.getElementById('cycleRow');
+const cycleLabels = ['日　月','月　花','火　鳥','水　風','木　月','金　花','土　鳥'];
+cycleLabels.forEach((label, i) => {
+  const el = document.createElement('div');
+  el.className = 'ci' + (i === dow ? ' today' : '');
+  el.textContent = label;
+  cycleRow.appendChild(el);
+});
+</script>
+</body>
+</html>
