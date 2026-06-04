@@ -101,7 +101,7 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
       <div class="di"><i class="ti ti-map"></i></div>
       <div class="dl">今週の<br>前線</div>
     </div>
-    <div class="door" onclick="alert('今週の三冊は毎週月曜日に更新されます')">
+    <div class="door" onclick="showBooks()">
       <div class="di"><i class="ti ti-book"></i></div>
       <div class="dl">今週の<br>三冊</div>
     </div>
@@ -121,7 +121,52 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
     </div>
   </div>
 </div>
-
+<!-- 今週の三冊画面 -->
+<div class="screen hidden" id="booksPage">
+  <div class="news-header">
+    <button class="back-btn" onclick="showTop()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
+    <div class="news-title">今週の三冊</div>
+  </div>
+  <div style="padding:14px 20px 4px;font-size:11px;color:#888;letter-spacing:0.06em;">2026年6月9日〜</div>
+  <div style="padding:0 20px 20px;">
+    <div style="border:1px solid #e8e4de;border-radius:12px;padding:14px;margin-bottom:12px;background:#fff;">
+      <div style="font-size:11px;color:#0F6E56;font-weight:600;margin-bottom:6px;">🐦 今週の鳥</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:48px;height:64px;background:#f0f0f0;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;">📗</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#2a2a2a;line-height:1.3;margin-bottom:4px;">僕には鳥の言葉がわかる</div>
+          <div style="font-size:12px;color:#888;margin-bottom:6px;">鈴木俊貴 著・小学館</div>
+          <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px;">シジュウカラが文法を持つことを発見した研究者による科学エッセイ。読んだ後に鳥の声が全部違って聞こえてくる。12万部突破。</div>
+          <a href="https://amzn.to/4fZtgV8" target="_blank" style="display:inline-block;background:#FF9900;color:white;font-size:11px;padding:5px 12px;border-radius:6px;text-decoration:none;font-weight:500;">Amazonで見る</a>
+        </div>
+      </div>
+    </div>
+    <div style="border:1px solid #e8e4de;border-radius:12px;padding:14px;margin-bottom:12px;background:#fff;">
+      <div style="font-size:11px;color:#993556;font-weight:600;margin-bottom:6px;">🌿 今週の手仕事</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:48px;height:64px;background:#f0f0f0;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;">📘</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#2a2a2a;line-height:1.3;margin-bottom:4px;">らくらくメンテで長く楽しむ 苔テラリウム</div>
+          <div style="font-size:12px;color:#888;margin-bottom:6px;">大野好弘 著</div>
+          <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px;">部屋の中に小さな森を作る。水やりは霧吹きだけでいい。梅雨の季節に苔は一番生き生きする。</div>
+          <a href="https://amzn.to/3PV3Qxv" target="_blank" style="display:inline-block;background:#FF9900;color:white;font-size:11px;padding:5px 12px;border-radius:6px;text-decoration:none;font-weight:500;">Amazonで見る</a>
+        </div>
+      </div>
+    </div>
+    <div style="border:1px solid #e8e4de;border-radius:12px;padding:14px;margin-bottom:12px;background:#fff;">
+      <div style="font-size:11px;color:#854F0B;font-weight:600;margin-bottom:6px;">🎨 今週の文化</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:48px;height:64px;background:#f0f0f0;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;">📙</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#2a2a2a;line-height:1.3;margin-bottom:4px;">古墳図鑑</div>
+          <div style="font-size:12px;color:#888;margin-bottom:6px;">青木敬 著</div>
+          <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px;">全国の古墳を写真で紹介。散歩コースの近くにも実は古墳がある。地図アプリで検索してみると面白い。</div>
+          <a href="https://amzn.to/49GRmQM" target="_blank" style="display:inline-block;background:#FF9900;color:white;font-size:11px;padding:5px 12px;border-radius:6px;text-decoration:none;font-weight:500;">Amazonで見る</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="news-screen" id="newsPage">
   <div class="news-header">
     <button class="back-btn" onclick="showTop()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
@@ -189,7 +234,7 @@ function goTo(n) {
   imgs[cur].classList.add('active'); dots[cur].classList.add('on');
 }
 setInterval(() => goTo((cur+1) % imgs.length), 6000);
-
+function showBooks(){document.getElementById('top').classList.add('hide');document.getElementById('booksPage').classList.add('show');}
 function showNews() {
   document.getElementById('top').classList.add('hide');
   document.getElementById('newsPage').classList.add('show');
