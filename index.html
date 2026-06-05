@@ -231,15 +231,15 @@ function goTo(n) {
   imgs[cur].classList.add('active'); dots[cur].classList.add('on');
 }
 setInterval(() => goTo((cur+1) % imgs.length), 6000);
-function showBooks(){document.getElementById('top').classList.add('hide');document.getElementById('booksPage').classList.add('show');}
+function showBooks(){
+  document.getElementById('top').classList.add('hide');
+  document.getElementById('booksPage').style.display='block';
+}
 function showNews() {
   document.getElementById('top').classList.add('hide');
   document.getElementById('newsPage').classList.add('show');
 }
-function showTop() {
-  document.getElementById('newsPage').classList.remove('show');
-  document.getElementById('top').classList.remove('hide');
-}
+function showTop() { document.getElementById('newsPage').classList.remove('show'); document.getElementById('booksPage').style.display='none'; document.getElementById('top').classList.remove('hide'); }
 
 const days = ['日','月','火','水','木','金','土'];
 const themes = ['月','花','鳥','風','月','花','鳥'];
