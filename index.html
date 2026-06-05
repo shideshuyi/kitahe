@@ -97,7 +97,7 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
       <div class="di"><i class="ti ti-news"></i></div>
       <div class="dl">花鳥風月<br>ニュース</div>
     </div>
-    <div class="door" onclick="alert('前線マップは毎週月曜日に更新されます')">
+    <div class="door" onclick="showZensen()">
       <div class="di"><i class="ti ti-map"></i></div>
       <div class="dl">今週の<br>前線</div>
     </div>
@@ -119,6 +119,17 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
       <div class="di"><i class="ti ti-shoe"></i></div>
       <div class="dl">ひとり<br>伊勢講</div>
     </div>
+  </div>
+</div>
+<!-- 前線マップ画面 -->
+<div class="news-screen" style="display:none;" id="zensenPage">
+  <div class="news-header">
+    <button class="back-btn" onclick="showTopFromZensen()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
+    <div class="news-title">紫陽花前線 2026</div>
+  </div>
+  <div style="padding:16px 20px;">
+    <div style="font-size:11px;color:#888;margin-bottom:12px;">2026年6月5日現在　ウェザーニュース開花予想より</div>
+    <img src="ajisai_zensen_0605.jpg" style="width:100%;border-radius:8px;" alt="紫陽花前線マップ">
   </div>
 </div>
 <!-- 今週の三冊画面 -->
@@ -236,6 +247,8 @@ function goTo(n) {
   imgs[cur].classList.add('active'); dots[cur].classList.add('on');
 }
 setInterval(() => goTo((cur+1) % imgs.length), 6000);
+function showZensen(){document.getElementById('top').classList.add('hide');document.getElementById('zensenPage').style.display='block';}  
+function showTopFromZensen(){document.getElementById('zensenPage').style.display='none';document.getElementById('top').classList.remove('hide');}
 function showBooks(){
   document.getElementById('top').classList.add('hide');
   document.getElementById('booksPage').style.display='block';
@@ -243,8 +256,7 @@ function showBooks(){
 function showNews() {
   document.getElementById('top').classList.add('hide');
   document.getElementById('newsPage').classList.add('show');
-}
-function showTop() { document.getElementById('newsPage').classList.remove('show'); document.getElementById('booksPage').style.display='none'; document.getElementById('top').classList.remove('hide'); }
+}function showTop() { document.getElementById('newsPage').classList.remove('show'); document.getElementById('booksPage').style.display='none'; document.getElementById('zensenPage').style.display='none'; document.getElementById('top').classList.remove('hide'); }
 
 const days = ['日','月','火','水','木','金','土'];
 const themes = ['月','花','鳥','風','月','花','鳥'];
