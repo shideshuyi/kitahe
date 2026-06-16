@@ -276,6 +276,7 @@ async function loadNews() {
     const res = await fetch(api);
     const data = await res.json();
     allNews = data.items || [];
+    allNews = allNews.filter((item, index, self) => index === self.findIndex(t => t.title.slice(0,15) === item.title.slice(0,15)));
     renderNews(allNews);
   } catch(e) {
     document.getElementById('newsList').innerHTML = '<div style="text-align:center;padding:40px 20px;color:#aaa;font-size:13px;">ニュースを取得できませんでした</div>';
