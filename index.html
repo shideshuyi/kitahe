@@ -34,10 +34,9 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
 .door:hover{border-color:#ccc;background:#f5f5f5;}
 .di{font-size:18px;color:#888;margin-bottom:5px;}
 .dl{font-size:11px;color:#666;line-height:1.4;}
-.news-screen{background:#fff;display:none;}
-.news-screen.show{display:block;}
+.screen{display:none;background:#fff;}
+.screen.active{display:block;}
 .top-screen{background:#faf9f7;}
-.top-screen.hide{display:none;}
 .news-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #e8e4de;}
 .back-btn{font-size:12px;color:#888;cursor:pointer;display:flex;align-items:center;gap:4px;background:none;border:none;padding:0;}
 .news-title{font-size:15px;font-weight:500;color:#2a2a2a;}
@@ -45,22 +44,16 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
 .ntab{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;color:#888;white-space:nowrap;}
 .ntab.on{color:#0F6E56;border-bottom-color:#0F6E56;font-weight:500;}
 .news-list{padding:0 20px;}
-.ni{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #e8e4de;cursor:pointer;}
+.ni{display:flex;gap:10px;padding:12px 0;border-bottom:0.5px solid #e8e4de;cursor:pointer;}
 .ni:last-child{border-bottom:none;}
-.nth{width:56px;height:42px;border-radius:8px;background:#f0f0f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
 .nb{flex:1;min-width:0;}
-.ntag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-bottom:3px;font-weight:500;}
-.tg-bird{background:#E1F5EE;color:#0F6E56;}
-.tg-flora{background:#FBEAF0;color:#993556;}
-.tg-sky{background:#E6F1FB;color:#185FA5;}
-.tg-art{background:#FAEEDA;color:#854F0B;}
-.tg-world{background:#EEEDFE;color:#534AB7;}
-.ntitle{font-size:13px;color:#2a2a2a;line-height:1.35;margin-bottom:2px;}
-.nmeta{font-size:10px;color:#888;}
+.ntitle{font-size:13px;color:#2a2a2a;line-height:1.5;margin-bottom:4px;}
+.nmeta{font-size:11px;color:#aaa;}
 </style>
 </head>
 <body>
 
+<!-- トップ画面 -->
 <div class="top-screen" id="top">
   <div class="stage">
     <img class="stage-img active" src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=900&q=80" alt="青葉"/>
@@ -93,15 +86,15 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
   </div>
 
   <div class="doors">
-    <div class="door" id="newsBtn" onclick="showNews()">
+    <div class="door" onclick="showScreen('newsPage')">
       <div class="di"><i class="ti ti-news"></i></div>
       <div class="dl">花鳥風月<br>ニュース</div>
     </div>
-    <div class="door" onclick="showZensen()">
+    <div class="door" onclick="showScreen('zensenPage')">
       <div class="di"><i class="ti ti-map"></i></div>
       <div class="dl">今週の<br>前線</div>
     </div>
-    <div class="door" onclick="showBooks()">
+    <div class="door" onclick="showScreen('booksPage')">
       <div class="di"><i class="ti ti-book"></i></div>
       <div class="dl">今週の<br>三冊</div>
     </div>
@@ -121,18 +114,39 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
     </div>
   </div>
 </div>
-<!-- 前線マップ画面 -->
-<div class="news-screen" style="display:none;" id="zensenPage">
+
+<!-- 花鳥風月ニュース画面 -->
+<div class="screen" id="newsPage">
   <div class="news-header">
-    <button class="back-btn" onclick="showTopFromZensen()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
+    <button class="back-btn" onclick="showTop()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
+    <div class="news-title">花鳥風月ニュース</div>
+  </div>
+  <div class="news-tabs">
+    <div class="ntab on" onclick="filterNews('all',this)">すべて</div>
+    <div class="ntab" onclick="filterNews('野鳥',this)">野鳥</div>
+    <div class="ntab" onclick="filterNews('植物',this)">草花</div>
+    <div class="ntab" onclick="filterNews('天体',this)">空・気象</div>
+    <div class="ntab" onclick="filterNews('美術館',this)">美術・文化</div>
+  </div>
+  <div class="news-list" id="newsList">
+    <div style="text-align:center;padding:40px 20px;color:#aaa;font-size:13px;">読み込み中...</div>
+  </div>
+</div>
+
+<!-- 前線マップ画面 -->
+<div class="screen" id="zensenPage">
+  <div class="news-header">
+    <button class="back-btn" onclick="showTop()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
     <div class="news-title">紫陽花前線 2026</div>
   </div>
   <div style="padding:16px 20px;">
     <div style="font-size:11px;color:#888;margin-bottom:12px;">2026年6月5日現在　出典：<a href="https://weathernews.jp/ajisai/kaikaforecast/" target="_blank" style="color:#0F6E56;">ウェザーニュース あじさい開花予想</a></div>
     <img src="ajisai_zensen_0605 (1).jpg" style="width:100%;max-height:70vh;object-fit:contain;border-radius:8px;" alt="紫陽花前線マップ">
   </div>
-</div><!-- 今週の三冊画面 -->
-<div class="news-screen" style="display:none;" id="booksPage">
+</div>
+
+<!-- 今週の三冊画面 -->
+<div class="screen" id="booksPage">
   <div style="padding:20px 24px 6px;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid #e8e4de;">
     <button class="back-btn" onclick="showTop()" style="background:none;border:none;cursor:pointer;color:#888;font-size:12px;display:flex;align-items:center;gap:4px;padding:0;"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
     <span style="font-size:15px;font-weight:500;color:#2a2a2a;">今週の三冊</span>
@@ -183,65 +197,14 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#faf9f7;}
         <a href="https://amzn.to/4eoNx5k" target="_blank" style="flex:1;padding:18px 14px;text-decoration:none;text-align:center;">
           <div style="font-size:28px;margin-bottom:8px;">📖</div>
           <div style="font-size:13px;font-weight:600;color:#3d2314;margin-bottom:6px;">Kindle</div>
-          <div style="font-size:14px;color:#888;line-height:1.6;">文字を好きな大きさに。<br>目に優しいサイズで読む。</div>
+          <div style="font-size:13px;color:#888;line-height:1.6;">文字を好きな大きさに。<br>目に優しいサイズで読む。</div>
         </a>
         <div style="width:0.5px;background:#ede9e2;"></div>
         <a href="https://amzn.to/4e7ZHOU" target="_blank" style="flex:1;padding:18px 14px;text-decoration:none;text-align:center;">
           <div style="font-size:28px;margin-bottom:8px;">🎧</div>
           <div style="font-size:13px;font-weight:600;color:#3d2314;margin-bottom:6px;">Audible</div>
-          <div style="font-size:14px;color:#888;line-height:1.6;">目を閉じて耳で聴く。<br>布団の中でも。</div>
+          <div style="font-size:13px;color:#888;line-height:1.6;">目を閉じて耳で聴く。<br>布団の中でも。</div>
         </a>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div><div class="news-screen" style="display:none;">
-  <div class="news-header">
-    <button class="back-btn" onclick="showTop()"><i class="ti ti-arrow-left" style="font-size:14px"></i>戻る</button>
-    <div class="news-title">花鳥風月ニュース</div>
-  </div>
-  <div class="news-tabs">
-    <div class="ntab on" onclick="filterNews('all',this)">すべて</div>
-    <div class="ntab" onclick="filterNews('野鳥',this)">野鳥</div>
-    <div class="ntab" onclick="filterNews('植物',this)">草花</div>
-    <div class="ntab" onclick="filterNews('天体',this)">空・気象</div>
-    <div class="ntab" onclick="filterNews('美術館',this)">美術・文化</div>
-  </div>
-  <div class="news-list" id="newsList">
-    <div style="text-align:center;padding:40px 20px;color:#aaa;font-size:13px;">読み込み中...</div>
-  </div>
-</div>
-    <div class="ni">
-      <div class="nth">🌸</div>
-      <div class="nb">
-        <span class="ntag tg-flora">草花</span>
-        <div class="ntitle">紫陽花前線、今週末に関東へ。箱根・高幡不動尊が見頃に</div>
-        <div class="nmeta">本日 · ウェザーニュース</div>
-      </div>
-    </div>
-    <div class="ni">
-      <div class="nth">🌙</div>
-      <div class="nb">
-        <span class="ntag tg-sky">空・気象</span>
-        <div class="ntitle">今夜の月齢7.2、梅雨の晴れ間に上弦の月が見えます</div>
-        <div class="nmeta">昨日 · 国立天文台</div>
-      </div>
-    </div>
-    <div class="ni">
-      <div class="nth">🖼️</div>
-      <div class="nb">
-        <span class="ntag tg-art">美術・文化</span>
-        <div class="ntitle">東京国立博物館「鳥獣戯画と日本の漫画」入場者50万人突破</div>
-        <div class="nmeta">2日前 · 東京国立博物館</div>
-      </div>
-    </div>
-    <div class="ni">
-      <div class="nth">🦩</div>
-      <div class="nb">
-        <span class="ntag tg-world">世界</span>
-        <div class="ntitle">ケニア・ナクル湖、フラミンゴが120万羽のコロニーを形成</div>
-        <div class="nmeta">3日前 · Daily Nation</div>
       </div>
     </div>
   </div>
@@ -257,19 +220,20 @@ function goTo(n) {
   imgs[cur].classList.add('active'); dots[cur].classList.add('on');
 }
 setInterval(() => goTo((cur+1) % imgs.length), 6000);
-function showZensen(){document.getElementById('top').classList.add('hide');document.getElementById('zensenPage').style.display='block';}  
-function showTopFromZensen(){document.getElementById('zensenPage').style.display='none';document.getElementById('top').classList.remove('hide');}
-function showBooks(){
-  document.getElementById('top').classList.add('hide');
-  document.getElementById('booksPage').style.display='block';
+
+function showScreen(id) {
+  document.getElementById('top').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'newsPage') loadNews();
 }
-function showNews() {
-  document.getElementById('top').classList.add('hide');
-  document.getElementById('newsPage').classList.add('show');
-}function showTop() { document.getElementById('newsPage').classList.remove('show'); document.getElementById('booksPage').style.display='none'; document.getElementById('zensenPage').style.display='none'; document.getElementById('top').classList.remove('hide'); }
+
+function showTop() {
+  document.getElementById('top').style.display = 'block';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+}
 
 const days = ['日','月','火','水','木','金','土'];
-const themes = ['月','花','鳥','風','月','花','鳥'];
 const words = [
   {theme:'今日の月', word:'月齢7', read:'じょうげんのつき', text:'上弦の月が西の空に見えます。月の半分が光る夜。'},
   {theme:'今日の花', word:'薔薇', read:'ばら', text:'6月はバラの季節。香りの強い品種は朝が一番香ります。'},
@@ -290,9 +254,8 @@ document.getElementById('todayText').textContent = w.text;
 
 const month = now.getMonth()+1;
 const date = now.getDate();
-const hour = now.getHours();
 const dayName = days[dow];
-document.getElementById('skyInfo').innerHTML = 
+document.getElementById('skyInfo').innerHTML =
   `${now.getFullYear()}年${month}月${date}日（${dayName}）芒種<br>日の出 4:28　日没 18:52　月齢 7.2`;
 
 const cycleRow = document.getElementById('cycleRow');
@@ -303,8 +266,8 @@ cycleLabels.forEach((label, i) => {
   el.textContent = label;
   cycleRow.appendChild(el);
 });
-const RSS_URL = 'https://news.google.com/rss/search?q=(野鳥+OR+開花+OR+見頃+OR+紅葉+OR+ホタル+OR+星空+OR+天体+OR+国立公園+OR+自然観察+OR+季節+OR+神社+OR+寺+OR+湿原+OR+美術館+OR+博物館+OR+日食+OR+月食+OR+海岸+OR+花火+OR+遺跡+OR+城跡+OR+古道+OR+国宝+OR+重要文化財+OR+植物+OR+古墳+OR+恐竜+OR+浮世絵+OR+江戸時代+OR+平安)+-殺人+-事故+-逮捕+-災害+-地震+-津波+-火事+-避難指示+-注意報+-警報+-イケメン+-国宝級+-アニメ+-ゲーム+-ドラマ+-クマ+-批判+-物議&hl=ja&gl=JP&ceid=JP:ja';
 
+const RSS_URL = 'https://news.google.com/rss/search?q=(野鳥+OR+開花+OR+見頃+OR+紅葉+OR+ホタル+OR+星空+OR+天体+OR+国立公園+OR+自然観察+OR+季節+OR+神社+OR+寺+OR+湿原+OR+美術館+OR+博物館+OR+日食+OR+月食+OR+海岸+OR+花火+OR+遺跡+OR+城跡+OR+古道+OR+国宝+OR+重要文化財+OR+植物+OR+古墳+OR+恐竜+OR+浮世絵+OR+江戸時代+OR+平安)+-殺人+-事故+-逮捕+-災害+-地震+-津波+-火事+-避難指示+-注意報+-警報+-イケメン+-国宝級+-アニメ+-ゲーム+-ドラマ+-クマ+-批判+-物議&hl=ja&gl=JP&ceid=JP:ja';
 let allNews = [];
 
 async function loadNews() {
@@ -326,12 +289,12 @@ function renderNews(items) {
     return;
   }
   list.innerHTML = items.map(item => {
-    const date = new Date(item.pubDate).toLocaleDateString('ja-JP', {month:'numeric',day:'numeric'});
+    const d = new Date(item.pubDate).toLocaleDateString('ja-JP', {month:'numeric',day:'numeric'});
     const source = item.author || '';
     return `<div class="ni" onclick="window.open('${item.link}','_blank')">
       <div class="nb">
         <div class="ntitle">${item.title}</div>
-        <div class="nmeta">${date}　${source}</div>
+        <div class="nmeta">${d}　${source}</div>
       </div>
     </div>`;
   }).join('');
@@ -346,8 +309,6 @@ function filterNews(keyword, el) {
     renderNews(allNews.filter(item => item.title.includes(keyword) || (item.description||'').includes(keyword)));
   }
 }
-
-document.addEventListener('DOMContentLoaded', loadNews);  
 </script>
 </body>
 </html>
