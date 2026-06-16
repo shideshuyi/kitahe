@@ -396,6 +396,7 @@ function showScreen(id) {
 }
 
 function showTop() {
+  document.getElementById('exhibitionPage').style.display='none';
   document.getElementById('top').style.display = 'block';
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 }
