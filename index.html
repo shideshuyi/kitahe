@@ -267,7 +267,7 @@ cycleLabels.forEach((label, i) => {
   cycleRow.appendChild(el);
 });
 
-const RSS_URL = 'https://news.google.com/rss/search?q=(野鳥+OR+開花+OR+見頃+OR+紅葉+OR+ホタル+OR+星空+OR+天体+OR+国立公園+OR+自然観察+OR+季節+OR+神社+OR+寺+OR+湿原+OR+美術館+OR+博物館+OR+日食+OR+月食+OR+海岸+OR+花火+OR+遺跡+OR+城跡+OR+古道+OR+国宝+OR+重要文化財+OR+植物+OR+古墳+OR+恐竜+OR+浮世絵+OR+江戸時代+OR+平安)+-殺人+-事故+-逮捕+-災害+-地震+-津波+-火事+-避難指示+-注意報+-警報+-イケメン+-国宝級+-アニメ+-ゲーム+-ドラマ+-クマ+-批判+-物議&hl=ja&gl=JP&ceid=JP:ja';
+const RSS_URL = 'https://news.google.com/rss/search?q=野鳥+OR+開花+OR+見頃+OR+紅葉+OR+ホタル+OR+星空+OR+神社+OR+寺+OR+美術館+OR+植物+OR+古墳+OR+浮世絵&hl=ja&gl=JP&ceid=JP:ja';
 let allNews = [];
 
 async function loadNews() {
