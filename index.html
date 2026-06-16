@@ -271,7 +271,7 @@ const RSS_URL = 'https://news.google.com/rss/search?q=野鳥+OR+開花+OR+見頃
 let allNews = [];
 
 async function loadNews() {
-  const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}&count=30`;
+  const api = \https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}&count=30&api_key=50zavyftsdxzzmpsba8d8uuibqp8kempoknvfaro\`;`
   try {
     const res = await fetch(api);
     const data = await res.json();
