@@ -396,9 +396,8 @@ function showScreen(id) {
 }
 
 function showTop() {
-  document.getElementById('exhibitionPage').style.display='none';
-  document.getElementById('top').style.display = 'block';
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('top').style.display = 'block';
 }
 
 const days = ['日','月','火','水','木','金','土'];
