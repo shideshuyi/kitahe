@@ -458,7 +458,7 @@ function renderNews(items) {
     return;
   }
   list.innerHTML = items.map(item => {
-    const d = new Date(item.pubDate).toLocaleDateString('ja-JP', {month:'numeric',day:'numeric'});
+    const d = new Date(item.pubDate).toLocaleDateString('ja-JP', {month:'numeric',day:'numeric',timeZone:'Asia/Tokyo'});
     const source = item.author || '';
     return `<div class="ni" onclick="window.open('${item.link}','_blank')">
       <div class="nb">
