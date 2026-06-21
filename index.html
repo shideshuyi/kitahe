@@ -463,7 +463,7 @@ function renderNews(items) {
     const source = item.author || '';
     return `<div class="ni" onclick="window.open('${item.link}','_blank')">
       <div class="nb">
-        <div class="ntitle">${item.title}</div>
+        <div class="ntitle">${item.title} [${item.author}]</div>
         <div class="nmeta">${d}　${source}</div>
       </div>
     </div>`;
