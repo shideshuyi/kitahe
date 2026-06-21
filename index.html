@@ -445,7 +445,7 @@ async function loadNews() {
     allNews = data.items || [];
     allNews = allNews.filter((item, index, self) => index === self.findIndex(t => t.title.slice(0,15) === item.title.slice(0,15)));
    allNews = allNews.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
-   allNews = allNews.filter(item => !(item.author||'').includes('cfecgc-orange.org') && !item.link.includes('treeuous.info'));
+  allNews = allNews.filter(item => !item.link.includes('treeuous.info') && !item.title.includes('cfecgc-orange.org'));
     renderNews(allNews);
   } catch(e) {
     document.getElementById('newsList').innerHTML = '<div style="text-align:center;padding:40px 20px;color:#aaa;font-size:13px;">ニュースを取得できませんでした</div>';
