@@ -434,7 +434,7 @@ cycleLabels.forEach((label, i) => {
   cycleRow.appendChild(el);
 });
 
-const RSS_URL = 'https://news.google.com/rss/search?q=野鳥+OR+開花+OR+見頃+OR+紅葉+OR+ホタル+OR+星空+OR+神社+OR+寺+OR+美術館+OR+植物+OR+古墳+OR+浮世絵+OR+蛍+OR+遺跡+OR+陶芸+OR+棚田+OR+里山+OR+茶道+-殺人+-事故+-逮捕+-災害+-地震+-津波+-火事+-避難指示+-注意報+-警報+-イケメン+-国宝級+-アニメ+-ゲーム+-ドラマ+-美少女+-ADV+-アガベ+-チタノタ+-クマ+-批判+-物議+-未遂+-刃物+-刺+-暴行+-襲撃+-重症+-軽傷+-意識不明+-重体+-遺体+-死亡+-骨折+-起訴+-廃棄物+-ブロマイド+-プロマイド+-競馬+-騎手+-レース+-異世界+-NHK+-netkeiba+-エロ+-グロ&hl=ja&gl=JP&ceid=JP:ja';
+const RSS_URL = 'https://news.google.com/rss/search?q=(野鳥+OR+開花+OR+見頃+OR+紅葉+OR+ホタル+OR+星空+OR+神社+OR+寺+OR+美術館+OR+植物+OR+古墳+OR+浮世絵+OR+蛍+OR+遺跡+OR+陶芸+OR+棚田+OR+里山+OR+茶道)+-殺人+-事故+-逮捕+-災害+-地震+-津波+-火事+-避難指示+-注意報+-警報+-イケメン+-国宝級+-アニメ+-ゲーム+-ドラマ+-美少女+-ADV+-アガベ+-チタノタ+-クマ+-批判+-物議+-未遂+-刃物+-刺+-暴行+-襲撃+-重症+-軽傷+-意識不明+-重体+-遺体+-死亡+-骨折+-起訴+-廃棄物+-ブロマイド+-プロマイド+-競馬+-騎手+-レース+-異世界+-NHK+-netkeiba+-エロ+-グロ&hl=ja&gl=JP&ceid=JP:ja';
 let allNews = [];
 
 async function loadNews() {
