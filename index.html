@@ -454,7 +454,10 @@ async function loadNews(retries = 2, delay = 1500) {
       let items = await fetchNewsOnce();
       items = items.filter((item, index, self) => index === self.findIndex(t => t.title.slice(0,15) === item.title.slice(0,15)));
       items = items.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
-      items = items.filter(item => !item.link.includes('treeuous.info') && !item.title.includes('cfecgc-orange.org'));
+      items = items.filter(item => !item.link.includes('treeuous.info') &&
+  !item.link.includes('vulgwise.guru') &&
+  !item.title.includes('cfecgc-orange.org') &&
+  !item.title.includes('FoodNewsLatam'));
       allNews = items;
       renderNews(allNews);
       return;
