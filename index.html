@@ -434,7 +434,16 @@ cycleLabels.forEach((label, i) => {
   cycleRow.appendChild(el);
 });
 
-const RSS_URL = 'https://news.google.com/rss/search?q=(野鳥+OR+開花+OR+見頃+OR+文学館+OR+紅葉+OR+朝顔+OR+蓮+OR+ホタル+OR+星空+OR+神社+OR+寺+OR+美術館+OR+植物+OR+古墳+OR+浮世絵+OR+蛍+OR+遺跡+OR+陶芸+OR+棚田+OR+里山+OR+茶道+OR+オーケストラ)+-殺人+-事故+-逮捕+-災害+-地震+-津波+-火事+-避難指示+-注意報+-警報+-イケメン+-国宝級+-アニメ+-ゲーム+-ドラマ+-フィギュア+-主題歌+-主演+-美少女+-ADV+-クマ+-批判+-物議+-未遂+-刃物+-刺+-暴行+-襲撃+-重症+-軽傷+-意識不明+-重体+-遺体+-死亡+-骨折+-起訴+-廃棄物+-ブロマイド+-プロマイド+-競馬+-騎手+-レース+-中傷+-差別+-異世界+-NHK+-netkeiba+-エロ+-グロ+-site:cfecgc-orange.org&hl=ja&gl=JP&ceid=JP:ja';
+const RSS_URL = 'https://news.google.com/rss/search?q=(野鳥+OR+開花+OR+見頃+OR+文学館+OR+紅葉+OR+朝顔+OR+蓮+OR+ホタル+OR+星空+OR+神社+OR+寺+OR+美術館+OR+植物+OR+古墳+OR+浮世絵+OR+蛍+OR+遺跡+OR+陶芸+OR+棚田+OR+里山+OR+茶道+OR+オーケストラ)&hl=ja&gl=JP&ceid=JP:ja';
+const EXCLUDE_KEYWORDS = [
+  '殺人','事故','逮捕','災害','地震','津波','火事','避難指示','注意報','警報',
+  'イケメン','国宝級','アニメ','ゲーム','ドラマ','フィギュア','主題歌','主演','美少女','ADV',
+  'クマ','批判','物議','未遂','刃物','刺','暴行','襲撃','重症','軽傷','意識不明','重体',
+  '遺体','死亡','骨折','起訴','廃棄物','ブロマイド','プロマイド','競馬','騎手','レース',
+  '中傷','差別','異世界','NHK','netkeiba','エロ','グロ','FoodNewsLatam'
+];
+
+const EXCLUDE_DOMAINS = ['treeuous.info', 'cfecgc-orange.org', 'vulgwise.guru'];
 let allNews = [];
 
 async function fetchNewsOnce() {
@@ -448,16 +457,20 @@ async function fetchNewsOnce() {
   return items;
 }
 
+function isExcluded(item) {
+  const text = item.title + (item.description || '');
+  if (EXCLUDE_KEYWORDS.some(k => text.includes(k))) return true;
+  if (EXCLUDE_DOMAINS.some(d => item.link.includes(d))) return true;
+  return false;
+}
+
 async function loadNews(retries = 2, delay = 1500) {
   for (let i = 0; i <= retries; i++) {
     try {
       let items = await fetchNewsOnce();
       items = items.filter((item, index, self) => index === self.findIndex(t => t.title.slice(0,15) === item.title.slice(0,15)));
       items = items.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
-      items = items.filter(item => !item.link.includes('treeuous.info') &&
-  !item.link.includes('vulgwise.guru') &&
-  !item.title.includes('cfecgc-orange.org') &&
-  !item.title.includes('FoodNewsLatam'));
+      items = items.filter(item => !isExcluded(item));
       allNews = items;
       renderNews(allNews);
       return;
