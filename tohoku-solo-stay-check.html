@@ -234,6 +234,13 @@
         <label>チェックアウト</label>
         <input type="date" id="checkout">
       </div>
+      <div>
+        <label>並び順</label>
+        <select id="sortMode">
+          <option value="gap" selected>目安とのズレが大きい順（要確認優先）</option>
+          <option value="price">価格が安い順</option>
+        </select>
+      </div>
     </div>
     <div class="checkrow">
       <input type="checkbox" id="compare2" checked>
@@ -251,7 +258,7 @@
   </section>
 
   <section class="panel" id="resultsPanel" style="display:none;">
-    <h2>検索結果（1泊あたりの支払額・安い順）</h2>
+    <h2>検索結果（1泊あたりの支払額）</h2>
     <div style="overflow-x:auto;">
       <table>
         <thead>
@@ -338,21 +345,21 @@ function buildUrl(params){
   return base + qs;
 }
 
-async function searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, adultNum, onRetry){
+async function searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, adultNum, onRetry, apiSort, page){
   try{
-    return await searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum);
+    return await searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum, apiSort, page);
   }catch(firstErr){
     if(onRetry) onRetry();
     await new Promise(r=>setTimeout(r, 800));
     try{
-      return await searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum);
+      return await searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum, apiSort, page);
     }catch(secondErr){
       throw new Error(secondErr.message + '（自動リトライ後も失敗）');
     }
   }
 }
 
-async function searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum){
+async function searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum, apiSort, page){
   const params = {
     applicationId: appId,
     accessKey: accessKey,
@@ -369,8 +376,8 @@ async function searchAdultNum(area, checkin, checkout, appId, accessKey, adultNu
     searchPattern: 1,
     responseType: 'middle',
     hits: 30,
-    page: 1,
-    sort: '+roomCharge'
+    page: page || 1,
+    sort: apiSort || '+roomCharge'
   };
   const url = buildUrl(params);
 
@@ -447,6 +454,7 @@ async function runSearch(){
   const checkin = document.getElementById('checkin').value;
   const checkout = document.getElementById('checkout').value;
   const doCompare = document.getElementById('compare2').checked;
+  const sortMode = document.getElementById('sortMode').value; // 'gap' or 'price'
   const statusMsg = document.getElementById('statusMsg');
   const runBtn = document.getElementById('runBtn');
 
@@ -463,15 +471,36 @@ async function runSearch(){
   }catch(e){}
 
   try{
-    const data1 = await searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, 1,
-      ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
-    const rows1 = extractRows(data1);
+    let rows1 = [];
+    let apiCountTotal = 0;
+
+    if(sortMode === 'gap'){
+      // ズレ優先モード：安い順の偏りを避けるため、おすすめ順(standard)で複数ページを幅広く取得
+      const pagesToFetch = [1,2,3];
+      for(const pg of pagesToFetch){
+        statusMsg.textContent = `検索中…（大人1名 / ${pg}ページ目）`;
+        const d = await searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, 1,
+          ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; }, 'standard', pg);
+        if(d && d.pagingInfo) apiCountTotal = d.pagingInfo.recordCount || apiCountTotal;
+        rows1 = rows1.concat(extractRows(d));
+      }
+      // 差額（1名実勢総額－施設の目安最安値）が大きい順に並べ替え。両方の値がある行のみ対象。
+      rows1 = rows1
+        .filter(r=>r.total!==null && r.hotelMinCharge!==null && r.hotelMinCharge>0)
+        .sort((a,b)=> (b.total - b.hotelMinCharge) - (a.total - a.hotelMinCharge))
+        .slice(0, 40);
+    } else {
+      const d = await searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, 1,
+        ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; }, '+roomCharge', 1);
+      apiCountTotal = (d && d.pagingInfo) ? d.pagingInfo.recordCount : 0;
+      rows1 = extractRows(d);
+    }
 
     let map2 = {};
     if(doCompare){
       statusMsg.textContent = '検索中…（大人2名で比較データを取得）';
       const data2 = await searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, 2,
-        ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
+        ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; }, 'standard', 1);
       const rows2 = extractRows(data2);
       rows2.forEach(r=>{
         if(r.total===null) return;
@@ -481,13 +510,10 @@ async function runSearch(){
     }
 
     renderRows(rows1, map2, area.name);
-    const apiCount = (data1 && data1.pagingInfo && data1.pagingInfo.recordCount!==undefined)
-      ? data1.pagingInfo.recordCount
-      : '不明';
+    const apiCount = apiCountTotal || '不明';
     statusMsg.textContent = `${area.name}：APIの検索ヒット数=${apiCount}件 ／ 画面に表示できたプラン=${rows1.length}件（${checkin}〜${checkout}）`;
     if(apiCount !== '不明' && Number(apiCount) > 0 && rows1.length === 0){
       statusMsg.textContent += ' ※APIはヒットしているのに表示0件＝解析側の不具合の可能性大。開発者コンソールに詳細を出力しました。';
-      console.log('生データ（解析漏れ調査用）:', JSON.stringify(data1).slice(0, 3000));
     }
   }catch(err){
     statusMsg.className = 'status err';
