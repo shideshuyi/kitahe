@@ -258,6 +258,7 @@
       <b>施設の目安最安値</b>＝APIが返す hotelMinCharge（一覧ページに出そうな代表価格の目安）。<br>
       <b>1名検索の実勢総額</b>＝adultNum=1で検索し実際に返ってきたプランの、1泊分の支払合計（total）。<br>
       <b>要確認スタンプ</b>＝目安最安値より1名実勢総額が明らかに高い場合に表示。まさに「一覧と詳細がズレる」現象の実測です。<br>
+      施設名のリンクは、決済画面に直結しない「施設情報ページ」を開きます（安全のため）。日付や人数は自動反映されないので、金額を最終確認したい宿は、そのページから手動で同じ日程・大人1名を指定して調べ直してください。<br>
       <b>参考：2名検索1人あたり</b>＝1名検索で出たプランと<u>同一のプランID</u>が2名検索でも見つかった場合のみ、その合計を2で割って表示します。別の部屋・別のプランで代用することはしません。「同一プラン無し」と出た場合は、その宿がそもそも1名向けと2名向けで別プランを用意している（単純比較ができない）ことを意味します。
     </div>
   </section>
@@ -573,7 +574,7 @@ function renderRows(rows, map2, areaName){
       : '<span style="color:var(--ink-soft);font-size:.72rem;">同一プラン無し</span>';
 
     tr.innerHTML = `
-      <td class="hname"><a href="${r.reserveUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
+      <td class="hname"><a href="${r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
       <td>${r.roomName || ''}<div class="plan">${r.planName || ''}</div></td>
       <td class="num">${yen(min)}</td>
       <td class="num">${yen(total)}</td>
