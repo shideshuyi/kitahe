@@ -400,23 +400,25 @@ async function searchAdultNum(area, checkin, checkout, appId, accessKey, adultNu
 function extractRows(data){
   const rows = [];
   if(!data || !data.hotels) return rows;
-  data.hotels.forEach(h=>{
-    let basic=null, room=null;
 
-    if(Array.isArray(h.hotel)){
-      // 旧来型：hotels[].hotel[] の中にhotelBasicInfo/roomBasicInfoが分かれて入っている
-      h.hotel.forEach(node=>{
-        if(node.hotelBasicInfo) basic = node.hotelBasicInfo;
-        if(node.roomBasicInfo) room = node.roomBasicInfo;
-      });
-    } else {
-      // フラット型：hotels[]の各要素に直接hotelBasicInfo/roomBasicInfoが入っている
-      basic = h.hotelBasicInfo || null;
-      room = h.roomBasicInfo || null;
-    }
+  data.hotels.forEach(hotelEntry=>{
+    // hotels[]の各要素はノードの配列： [{hotelBasicInfo},{hotelDetailInfo},{hotelReserveInfo},{roomInfo:[{roomBasicInfo},{dailyCharge}]}]
+    const nodes = Array.isArray(hotelEntry) ? hotelEntry : [hotelEntry];
 
+    let basic=null, roomInfoArr=null;
+    nodes.forEach(node=>{
+      if(node.hotelBasicInfo) basic = node.hotelBasicInfo;
+      if(node.roomInfo) roomInfoArr = node.roomInfo;
+    });
     if(!basic) return;
-    const daily = (room && room.dailyCharge) ? room.dailyCharge : null;
+
+    let room=null, daily=null;
+    if(Array.isArray(roomInfoArr)){
+      roomInfoArr.forEach(rn=>{
+        if(rn.roomBasicInfo) room = rn.roomBasicInfo;
+        if(rn.dailyCharge) daily = rn.dailyCharge;
+      });
+    }
 
     rows.push({
       hotelNo: basic.hotelNo,
