@@ -415,19 +415,37 @@ function parseAreaTree(data){
 }
 
 const STATION_COORDS = {
-  aomori:   [{name:'青森駅',   lat:40.824623, lng:140.742938}, {name:'弘前駅', lat:40.603135, lng:140.463840}],
-  iwate:    [{name:'盛岡駅',   lat:39.700813, lng:141.135288}],
-  miyagi:   [{name:'仙台駅',   lat:38.260559, lng:140.882194}],
-  akita:    [{name:'秋田駅',   lat:39.717936, lng:140.102725}],
-  yamagata: [{name:'山形駅',   lat:38.240436, lng:140.363069}],
-  fukushima:[{name:'福島駅',   lat:37.754114, lng:140.474425}, {name:'郡山駅', lat:37.400832, lng:140.383117}, {name:'会津若松駅', lat:37.494328, lng:139.929781}],
+  // 実際の地区コードAPIで確認済みの smallClassCode に紐づけています
+  aomori: {
+    aomori:   [{name:'青森駅', lat:40.824623, lng:140.742938}],
+    hirosaki: [{name:'弘前駅', lat:40.603135, lng:140.463840}],
+  },
+  iwate: {
+    morioka:  [{name:'盛岡駅', lat:39.700813, lng:141.135288}],
+    kitakami: [{name:'遠野駅', lat:39.332345, lng:141.531194}],
+  },
+  miyagi: {
+    sendai:   [{name:'仙台駅', lat:38.260559, lng:140.882194}],
+  },
+  akita: {
+    akita:    [{name:'秋田駅', lat:39.717936, lng:140.102725}],
+  },
+  // ↓ 山形・福島は実際のsmallClassCode名がまだ未確認のため、暫定です（要検証）
+  yamagata: {
+    yamagata: [{name:'山形駅', lat:38.240436, lng:140.363069}],
+  },
+  fukushima: {
+    fukushima:[{name:'福島駅', lat:37.754114, lng:140.474425}],
+  },
 };
 
 function updateStationSelect(){
   const prefCode = document.getElementById('prefSelect').value;
+  const smallCode = document.getElementById('areaSmallSelect').value;
   const sel = document.getElementById('narrowStation');
   sel.innerHTML = '<option value="">絞り込まない（地区全体）</option>';
-  (STATION_COORDS[prefCode] || []).forEach((st, i)=>{
+  const list = (STATION_COORDS[prefCode] && STATION_COORDS[prefCode][smallCode]) || [];
+  list.forEach((st, i)=>{
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = st.name;
@@ -443,7 +461,7 @@ function populateSmallSelect(tree){
   const entry = tree[prefCode];
   if(!entry || !entry.smalls || entry.smalls.length===0){
     smallSel.innerHTML = '<option value="">この県の地区が見つかりませんでした</option>';
-    updateDetailSelect();
+    onAreaSmallChange();
     return;
   }
   entry.smalls.forEach(s=>{
@@ -452,7 +470,7 @@ function populateSmallSelect(tree){
     opt.textContent = s.name;
     smallSel.appendChild(opt);
   });
-  updateDetailSelect();
+  onAreaSmallChange();
 }
 
 function updateDetailSelect(){
@@ -500,6 +518,8 @@ async function loadAreaTree(){
     const tree = parseAreaTree(data);
 
     const gotAny = TOHOKU_PREFS.some(p=>tree[p] && tree[p].smalls.length>0);
+    console.log('地区コードAPIで実際に取得できた都道府県コード一覧:', Object.keys(tree));
+    console.log('東北6県それぞれの取得状況:', TOHOKU_PREFS.map(p=>({県コード:p, 地区数: tree[p] ? tree[p].smalls.length : 0, 表示名: tree[p] ? tree[p].name : '見つからず'})));
     if(!gotAny){
       console.log('地区コードAPI 生データ（調査用・先頭3000文字）:', JSON.stringify(data).slice(0,3000));
       statusMsg.className='status err';
@@ -519,11 +539,24 @@ async function loadAreaTree(){
   }
 }
 
-document.getElementById('prefSelect').addEventListener('change', ()=>{
-  if(window.__areaTree) populateSmallSelect(window.__areaTree);
+function onAreaSmallChange(){
+  updateDetailSelect();
+  updateStationSelect();
+}
+
+document.getElementById('prefSelect').addEventListener('change', async ()=>{
+  if(window.__areaTree){
+    populateSmallSelect(window.__areaTree);
+  } else {
+    const appId = document.getElementById('appId').value.trim();
+    const accessKey = document.getElementById('accessKey').value.trim();
+    if(appId && accessKey){
+      await loadAreaTree(); // キャッシュが無ければ自動で読み込みに行く
+    }
+  }
   updateStationSelect();
 });
-document.getElementById('areaSmallSelect').addEventListener('change', updateDetailSelect);
+document.getElementById('areaSmallSelect').addEventListener('change', onAreaSmallChange);
 document.getElementById('loadAreaBtn').addEventListener('click', loadAreaTree);
 updateStationSelect();
 
@@ -620,7 +653,7 @@ function extractStationWalk(accessText){
   const stationName = stationMatch[1];
   const idx = stripped.indexOf(stationMatch[0]);
   const window = stripped.slice(idx, idx+40);
-  const walkMatch = window.match(/徒歩\s*(\d+)\s*分/);
+  const walkMatch = window.match(/徒歩\s*(?:約\s*)?(\d+)\s*分/);
   if(!walkMatch) return null;
   return { station: stationName, minutes: walkMatch[1] };
 }
@@ -696,7 +729,7 @@ async function runSearch(){
   const narrowKm = document.getElementById('narrowKm').value;
   let narrowLat = '', narrowLng = '';
   if(narrowStationIdx !== ''){
-    const stationList = STATION_COORDS[prefCode] || [];
+    const stationList = (STATION_COORDS[prefCode] && STATION_COORDS[prefCode][smallCode]) || [];
     const st = stationList[parseInt(narrowStationIdx, 10)];
     if(st){ narrowLat = st.lat; narrowLng = st.lng; }
   }
@@ -727,7 +760,7 @@ async function runSearch(){
     const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
 
     renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, smallCode, checkin, checkout)})), areaLabel);
-    const stationName = narrowStationIdx !== '' ? (STATION_COORDS[prefCode]||[])[parseInt(narrowStationIdx,10)]?.name : null;
+    const stationName = narrowStationIdx !== '' ? ((STATION_COORDS[prefCode]&&STATION_COORDS[prefCode][smallCode])||[])[parseInt(narrowStationIdx,10)]?.name : null;
     const narrowNote = stationName ? `［${stationName}中心 半径${narrowKm}kmに絞り込み］` : '';
     statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得=${beforeFilterCount}件 ／ 評価絞込後=${rows.length}件（${checkin}〜${checkout}）${narrowNote}`;
     if(beforeFilterCount > 0 && rows.length === 0){
@@ -755,6 +788,12 @@ function renderRows(rows, areaLabel){
   }
   empty.style.display='none';
   panel.style.display='block';
+
+  const failedWalks = rows.filter(r=>!r.stationWalk && r.access).slice(0,5);
+  if(failedWalks.length > 0){
+    console.log('駅徒歩分数を抽出できなかった宿のアクセス文（調査用・最大5件）:',
+      failedWalks.map(r=>({施設名:r.hotelName, アクセス文:r.access})));
+  }
 
   rows.forEach(r=>{
     const tr = document.createElement('tr');
