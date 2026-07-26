@@ -625,15 +625,12 @@ function buildSearchUrl(params){
   return base + qs;
 }
 
-async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm){
+async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation){
   const params = {
     applicationId: appId,
     accessKey: accessKey,
     format: 'json',
     formatVersion: 2,
-    largeClassCode: 'japan',
-    middleClassCode: prefCode,
-    smallClassCode: smallCode,
     checkinDate: checkin,
     checkoutDate: checkout,
     adultNum: 1,
@@ -644,7 +641,14 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
     page: 1,
     sort: '+roomCharge'
   };
-  if(detailCode) params.detailClassCode = detailCode;
+  if(useFreeLocation){
+    // 自由入力の場所を使う時は、地区コードを送らず緯度経度だけで検索する
+  } else {
+    params.largeClassCode = 'japan';
+    params.middleClassCode = prefCode;
+    params.smallClassCode = smallCode;
+    if(detailCode) params.detailClassCode = detailCode;
+  }
   if(onsenOnly) params.squeezeCondition = 'onsen';
   if(minCharge) params.minCharge = minCharge;
   if(maxCharge) params.maxCharge = maxCharge;
@@ -659,14 +663,14 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
   return await apiFetch(url);
 }
 
-async function searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, onRetry){
+async function searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation, onRetry){
   try{
-    return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm);
+    return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation);
   }catch(firstErr){
     if(onRetry) onRetry();
     await new Promise(r=>setTimeout(r, 800));
     try{
-      return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm);
+      return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation);
     }catch(secondErr){
       throw new Error(secondErr.message + '（自動リトライ後も失敗）');
     }
@@ -798,7 +802,7 @@ async function runSearch(){
 
   if(!appId){ statusMsg.textContent = 'アプリIDを入力してください'; statusMsg.className='status err'; return; }
   if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください'; statusMsg.className='status err'; return; }
-  if(!smallCode){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して、地区を選んでください'; statusMsg.className='status err'; return; }
+  if(!smallCode && !window.__freeLocation){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して地区を選ぶか、自由入力で場所を確認してください'; statusMsg.className='status err'; return; }
   if(!checkin || !checkout){ statusMsg.textContent = '日付を指定してください'; statusMsg.className='status err'; return; }
 
   runBtn.disabled = true;
@@ -809,7 +813,7 @@ async function runSearch(){
 
   try{
     const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
-      narrowLat, narrowLng, narrowKm,
+      narrowLat, narrowLng, narrowKm, !!window.__freeLocation,
       ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
     let rows = extractRows(data);
     const beforeFilterCount = rows.length;
