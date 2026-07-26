@@ -249,6 +249,21 @@
         </div>
       </div>
     </div>
+    <div class="checkrow" style="margin-top:8px; align-items:flex-start; flex-direction:column; border-top:1px dashed var(--line); padding-top:10px;">
+      <label style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-bottom:4px;">
+        実験：自由入力で場所を検索（駅を登録していない地名でも使えます・任意）
+      </label>
+      <div class="grid" style="width:100%;">
+        <div style="grid-column: span 2;">
+          <label>場所（駅名・地名など）</label>
+          <input type="text" id="freeLocationQuery" placeholder="例：多賀城駅、遠野、古川駅">
+        </div>
+        <div>
+          <button type="button" id="geocodeBtn" style="background:var(--gold); width:100%;">位置を確認</button>
+        </div>
+      </div>
+      <div id="geocodeResult" style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-top:6px;"></div>
+    </div>
     <div>
         <label>チェックイン</label>
         <input type="date" id="checkin">
@@ -425,7 +440,11 @@ const STATION_COORDS = {
     kitakami: [{name:'遠野駅', lat:39.332345, lng:141.531194}],
   },
   miyagi: {
-    sendai:   [{name:'仙台駅', lat:38.260559, lng:140.882194}],
+    sendai:   [
+      {name:'仙台駅',   lat:38.260559,  lng:140.882194},
+      {name:'多賀城駅', lat:38.291744,  lng:141.006248},
+      {name:'名取駅',   lat:38.173191,  lng:140.882881},
+    ],
   },
   akita: {
     akita:    [{name:'秋田駅', lat:39.717936, lng:140.102725}],
@@ -438,6 +457,43 @@ const STATION_COORDS = {
     fukushima:[{name:'福島駅', lat:37.754114, lng:140.474425}],
   },
 };
+
+// ---- 自由入力の地名検索（Nominatim/OpenStreetMap、無料のジオコーディングサービス）----
+window.__freeLocation = null; // {lat, lng, displayName}
+
+async function geocodeLocation(){
+  const query = document.getElementById('freeLocationQuery').value.trim();
+  const resultEl = document.getElementById('geocodeResult');
+  if(!query){
+    resultEl.textContent = '場所を入力してください';
+    resultEl.style.color = 'var(--vermillion, #b8451f)';
+    return;
+  }
+  resultEl.textContent = '検索中…';
+  resultEl.style.color = 'var(--ink-soft)';
+  window.__freeLocation = null;
+
+  try{
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=jp&accept-language=ja&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if(!data || data.length === 0){
+      resultEl.textContent = `「${query}」が見つかりませんでした。別の書き方（例：地名＋県名）で試してください`;
+      resultEl.style.color = 'var(--vermillion, #b8451f)';
+      return;
+    }
+    const place = data[0];
+    window.__freeLocation = { lat: parseFloat(place.lat), lng: parseFloat(place.lon), displayName: place.display_name };
+    resultEl.textContent = `✓ この場所として検索します: ${place.display_name}（緯度${place.lat} / 経度${place.lon}）`;
+    resultEl.style.color = 'var(--indigo, #253c56)';
+  }catch(err){
+    resultEl.textContent = 'エラー: ' + err.message + '（Nominatimが混雑している可能性があります。少し待って再試行してください）';
+    resultEl.style.color = 'var(--vermillion, #b8451f)';
+  }
+}
+
+document.getElementById('geocodeBtn').addEventListener('click', geocodeLocation);
 
 function updateStationSelect(){
   const prefCode = document.getElementById('prefSelect').value;
@@ -728,7 +784,11 @@ async function runSearch(){
   const narrowStationIdx = document.getElementById('narrowStation').value;
   const narrowKm = document.getElementById('narrowKm').value;
   let narrowLat = '', narrowLng = '';
-  if(narrowStationIdx !== ''){
+  if(window.__freeLocation){
+    // 自由入力で場所が確認済みなら、それを優先する
+    narrowLat = window.__freeLocation.lat;
+    narrowLng = window.__freeLocation.lng;
+  } else if(narrowStationIdx !== ''){
     const stationList = (STATION_COORDS[prefCode] && STATION_COORDS[prefCode][smallCode]) || [];
     const st = stationList[parseInt(narrowStationIdx, 10)];
     if(st){ narrowLat = st.lat; narrowLng = st.lng; }
@@ -760,7 +820,9 @@ async function runSearch(){
     const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
 
     renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, smallCode, checkin, checkout)})), areaLabel);
-    const stationName = narrowStationIdx !== '' ? ((STATION_COORDS[prefCode]&&STATION_COORDS[prefCode][smallCode])||[])[parseInt(narrowStationIdx,10)]?.name : null;
+    const stationName = window.__freeLocation
+      ? window.__freeLocation.displayName.split('、')[0].split(',')[0]
+      : (narrowStationIdx !== '' ? ((STATION_COORDS[prefCode]&&STATION_COORDS[prefCode][smallCode])||[])[parseInt(narrowStationIdx,10)]?.name : null);
     const narrowNote = stationName ? `［${stationName}中心 半径${narrowKm}kmに絞り込み］` : '';
     statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得=${beforeFilterCount}件 ／ 評価絞込後=${rows.length}件（${checkin}〜${checkout}）${narrowNote}`;
     if(beforeFilterCount > 0 && rows.length === 0){
