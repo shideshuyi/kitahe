@@ -228,19 +228,29 @@
         <label>さらに細かいエリア（あれば選択）</label>
         <select id="areaDetailSelect"><option value="">指定なし（地区全体）</option></select>
       </div>
-      <div>
-        <label>実験：中心緯度（狭める・任意）</label>
-        <input type="text" id="narrowLat" placeholder="例：38.28146847（仙台駅）">
+    <div class="checkrow" style="margin-top:8px; align-items:flex-start; flex-direction:column;">
+      <label style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-bottom:4px;">
+        実験的な絞り込み（3つとも数値で入力した場合のみ有効・任意。地名ではなく数値を入れてください）
+      </label>
+      <div class="grid" style="width:100%;">
+        <div>
+          <label>中心緯度（数値のみ）</label>
+          <input type="text" id="narrowLat" placeholder="例：38.28146847">
+        </div>
+        <div>
+          <label>中心経度（数値のみ）</label>
+          <input type="text" id="narrowLng" placeholder="例：140.869356">
+        </div>
+        <div>
+          <label>半径km（最大3.0）</label>
+          <input type="text" id="narrowKm" placeholder="例：3">
+        </div>
       </div>
-      <div>
-        <label>実験：中心経度（狭める・任意）</label>
-        <input type="text" id="narrowLng" placeholder="例：140.869356（仙台駅）">
+      <div style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.7rem; color:var(--ink-soft); margin-top:4px;">
+        例（仙台駅）：緯度 38.28146847 ／ 経度 140.869356 ／ 半径 3
       </div>
-      <div>
-        <label>実験：半径km（最大3.0・任意）</label>
-        <input type="text" id="narrowKm" placeholder="例：3">
-      </div>
-      <div>
+    </div>
+    <div>
         <label>チェックイン</label>
         <input type="date" id="checkin">
       </div>
@@ -281,7 +291,8 @@
     </div>
     <div class="legend">
       価格の安い順に、最大30件まで表示します。<br>
-      施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。
+      施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。<br>
+      「駅から徒歩」は、施設のアクセス文中にある「駅」の近くに書かれた「徒歩◯分」を自動で抜き出した参考値です。書き方によっては抜き出せない宿もあり、その場合は「―」と表示されます（数字自体は施設側の記載をそのまま転記していますが、正確な意味の徒歩分数かは保証できないため「参考」としています）。マウスを乗せるとアクセス文の全文を確認できます。
     </div>
   </section>
 
@@ -295,6 +306,7 @@
             <th>プラン／部屋</th>
             <th class="num">料金</th>
             <th>食事</th>
+            <th class="num">駅から徒歩</th>
             <th class="num">評価</th>
           </tr>
         </thead>
@@ -573,6 +585,24 @@ function buildConditionAwarePlanUrl(hotelNo, prefCode, smallCode, checkinISO, ch
   return `https://hotel.travel.rakuten.co.jp/hotelinfo/plan/${hotelNo}?${qs}`;
 }
 
+function toHalfWidthDigits(s){
+  return (s||'').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+}
+
+function extractStationWalk(accessText){
+  const t = toHalfWidthDigits(accessText);
+  // 括弧は空白に置換してから駅名を探す（隣の駅名同士がくっつくのを防ぐ）
+  const stripped = t.replace(/[「」()（）]/g, ' ');
+  const stationMatch = stripped.match(/([A-Za-z0-9ぁ-んァ-ヴー一-龠]{1,12}駅)/);
+  if(!stationMatch) return null;
+  const stationName = stationMatch[1];
+  const idx = stripped.indexOf(stationMatch[0]);
+  const window = stripped.slice(idx, idx+40);
+  const walkMatch = window.match(/徒歩\s*(\d+)\s*分/);
+  if(!walkMatch) return null;
+  return { station: stationName, minutes: walkMatch[1] };
+}
+
 function mealText(room){
   if(!room) return '不明';
   const b = room.withBreakfastFlag===1 ? '朝食○' : '朝食×';
@@ -610,6 +640,8 @@ function extractRows(data){
       reserveUrl: room ? room.reserveUrl : null,
       reviewAverage: basic.reviewAverage,
       reviewCount: basic.reviewCount,
+      access: basic.access,
+      stationWalk: extractStationWalk(basic.access),
       roomName: room ? room.roomName : '(部屋情報なし)',
       planName: room ? room.planName : '',
       meal: mealText(room),
@@ -641,6 +673,28 @@ async function runSearch(){
   const narrowLat = document.getElementById('narrowLat').value.trim();
   const narrowLng = document.getElementById('narrowLng').value.trim();
   const narrowKm = document.getElementById('narrowKm').value.trim();
+
+  const narrowFields = [
+    {name:'中心緯度', value:narrowLat},
+    {name:'中心経度', value:narrowLng},
+    {name:'半径km', value:narrowKm},
+  ];
+  const narrowFilled = narrowFields.filter(f=>f.value!=='');
+  if(narrowFilled.length > 0 && narrowFilled.length < 3){
+    const missing = narrowFields.filter(f=>f.value==='').map(f=>f.name).join('・');
+    statusMsg.textContent = `実験的な絞り込みは、緯度・経度・半径の3つ全部を入力しないと使えません（${missing}が未入力です）`;
+    statusMsg.className='status err';
+    return;
+  }
+  if(narrowFilled.length === 3){
+    for(const f of narrowFields){
+      if(isNaN(parseFloat(f.value)) || !isFinite(Number(f.value))){
+        statusMsg.textContent = `「${f.name}」には地名ではなく数値を入力してください（今は「${f.value}」になっています）`;
+        statusMsg.className='status err';
+        return;
+      }
+    }
+  }
   const statusMsg = document.getElementById('statusMsg');
   const runBtn = document.getElementById('runBtn');
 
@@ -703,6 +757,7 @@ function renderRows(rows, areaLabel){
       <td>${r.roomName || ''}<div class="plan">${r.planName || ''}</div></td>
       <td class="num">${yen(r.total)}</td>
       <td><span class="badge">${r.meal}</span></td>
+      <td class="num" title="${r.access ? r.access.replace(/"/g,'') : ''}">${r.stationWalk ? r.stationWalk.station+' 徒歩'+r.stationWalk.minutes+'分（参考）' : '—'}</td>
       <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
     `;
     tbody.appendChild(tr);
