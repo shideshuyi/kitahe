@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東北ひとり宿 実勢価格検証帳</title>
+<title>東北ひとり宿 実勢価格一覧</title>
 <style>
   :root{
     --paper: #e9e2d0;
@@ -12,11 +12,8 @@
     --ink-soft: #5c5346;
     --indigo: #253c56;
     --indigo-deep: #16283c;
-    --vermillion: #b8451f;
-    --vermillion-soft: #b8451f22;
     --gold: #9c8352;
     --line: #c9bd9f;
-    --ok: #3c5c3e;
   }
   *{box-sizing:border-box;}
   body{
@@ -28,7 +25,7 @@
     font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
     padding:28px 16px 60px;
   }
-  .wrap{max-width:980px;margin:0 auto;}
+  .wrap{max-width:900px;margin:0 auto;}
 
   header.cover{
     border:1px solid var(--gold);
@@ -126,7 +123,7 @@
     font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     font-size:.78rem; color:var(--ink-soft);
   }
-  .status.err{color:var(--vermillion);}
+  .status.err{color:#b8451f;}
 
   .legend{
     font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
@@ -176,20 +173,7 @@
     padding:1px 6px;
     border:1px solid var(--line);
     color:var(--ink-soft);
-    margin-left:6px;
-  }
-  .flag{
-    display:inline-block;
-    font-size:.68rem;
-    padding:3px 8px;
-    border:1.5px solid var(--vermillion);
-    color:var(--vermillion);
-    transform:rotate(-3deg);
-    font-weight:600;
     white-space:nowrap;
-  }
-  .flag.ok{
-    border-color:var(--ok); color:var(--ok);
   }
   .empty{
     padding:30px; text-align:center;
@@ -202,12 +186,12 @@
 <div class="wrap">
 
   <header class="cover">
-    <h1>東北ひとり宿 実勢価格検証帳
-      <small>楽天トラベル空室検索API・大人1名固定検索の“本当の支払額”を確かめる小道具</small>
+    <h1>東北ひとり宿 実勢価格一覧
+      <small>楽天トラベル空室検索API・大人1名固定で検索した「実際の支払額」だけを表示する</small>
     </h1>
     <div class="purpose">
-      検索一覧に出る目安価格と、実際に「大人1名」で予約する時の金額が一致しているかを、楽天トラベルの公式APIの生データで突き合わせます。
-      APIは1人あたり/1室あたりの料金区分（chargeFlag）を明示的に返すため、その場しのぎの表示ではなく仕組みとして確認できます。
+      大人1名・指定日程で楽天トラベルに直接問い合わせ、実際にヒットしたプランの1泊分の支払額をそのまま一覧にします。
+      この一覧の金額と、実際に楽天トラベルで同じ条件（同じ日程・大人1名）を検索した時の金額が一致しているかを確認するのが目的です。
     </div>
   </header>
 
@@ -215,16 +199,27 @@
     <h2>検索条件</h2>
     <div class="grid">
       <div>
-        <label>楽天ウェブサービス アプリID <span style="color:var(--vermillion)">*必須</span></label>
-        <input type="text" id="appId" placeholder="developer.rakuten.co.jp で無料取得">
+        <label>楽天ウェブサービス アプリID <span style="color:#b8451f">*必須</span></label>
+        <input type="text" id="appId" placeholder="webservice.rakuten.co.jp で無料取得">
       </div>
       <div>
-        <label>アクセスキー <span style="color:var(--vermillion)">*必須（2026年仕様変更以降）</span></label>
+        <label>アクセスキー <span style="color:#b8451f">*必須</span></label>
         <input type="text" id="accessKey" placeholder="アプリID発行時に一緒に表示されたaccessKey">
       </div>
       <div>
-        <label>エリア（東北）</label>
-        <select id="area"></select>
+        <label>都道府県</label>
+        <select id="prefSelect">
+          <option value="aomori">青森県</option>
+          <option value="iwate">岩手県</option>
+          <option value="miyagi" selected>宮城県</option>
+          <option value="akita">秋田県</option>
+          <option value="yamagata">山形県</option>
+          <option value="fukushima">福島県</option>
+        </select>
+      </div>
+      <div>
+        <label>地区（読み込み後に選択）</label>
+        <select id="areaSmallSelect"><option value="">－先に「地区一覧を読み込む」を押してください－</option></select>
       </div>
       <div>
         <label>チェックイン</label>
@@ -235,47 +230,55 @@
         <input type="date" id="checkout">
       </div>
       <div>
-        <label>並び順</label>
-        <select id="sortMode">
-          <option value="gap" selected>目安とのズレが大きい順（要確認優先）</option>
-          <option value="price">価格が安い順</option>
+        <label>価格帯（下限・円）</label>
+        <input type="text" id="minCharge" placeholder="例：3000">
+      </div>
+      <div>
+        <label>価格帯（上限・円）</label>
+        <input type="text" id="maxCharge" placeholder="例：15000">
+      </div>
+      <div>
+        <label>評価（口コミ）で絞り込む</label>
+        <select id="minReview">
+          <option value="">指定なし</option>
+          <option value="3.0">★3.0以上</option>
+          <option value="3.5">★3.5以上</option>
+          <option value="4.0" selected>★4.0以上</option>
+          <option value="4.5">★4.5以上</option>
         </select>
+      </div>
+      <div>
+        <label>最低レビュー件数（信頼性の担保）</label>
+        <input type="text" id="minReviewCount" value="30" placeholder="例：30">
       </div>
     </div>
     <div class="checkrow">
       <input type="checkbox" id="onsenOnly" checked>
-      <label for="onsenOnly" style="margin:0;">温泉宿に絞り込む（ビジネスホテル・カプセル系を除外し、旅館タイプに絞る）</label>
-    </div>
-    <div class="checkrow">
-      <input type="checkbox" id="compare2" checked>
-      <label for="compare2" style="margin:0;">同じ宿の「大人2名」検索も同時に行い、1人あたり換算で比較する</label>
+      <label for="onsenOnly" style="margin:0;">温泉宿に絞り込む（ビジネスホテル・カプセル系を除外）</label>
     </div>
     <div class="actions">
-      <button id="runBtn">検索して突き合わせる</button>
-      <span class="status" id="statusMsg">アプリIDを入力してください</span>
+      <button id="loadAreaBtn" style="background:var(--gold);">地区一覧を読み込む</button>
+      <button id="runBtn">検索する</button>
+      <span class="status" id="statusMsg">アプリIDとアクセスキーを入力してください</span>
     </div>
     <div class="legend">
-      <b>施設の目安最安値</b>＝APIが返す hotelMinCharge（一覧ページに出そうな代表価格の目安）。<br>
-      <b>1名検索の実勢総額</b>＝adultNum=1で検索し実際に返ってきたプランの、1泊分の支払合計（total）。<br>
-      <b>要確認スタンプ</b>＝目安最安値より1名実勢総額が明らかに高い場合に表示。まさに「一覧と詳細がズレる」現象の実測です。<br>
-      施設名のリンクは、決済画面に直結しない「施設情報ページ」を開きます（安全のため）。日付や人数は自動反映されないので、金額を最終確認したい宿は、そのページから手動で同じ日程・大人1名を指定して調べ直してください。<br>
-      <b>参考：2名検索1人あたり</b>＝1名検索で出たプランと<u>同一のプランID</u>が2名検索でも見つかった場合のみ、その合計を2で割って表示します。別の部屋・別のプランで代用することはしません。「同一プラン無し」と出た場合は、その宿がそもそも1名向けと2名向けで別プランを用意している（単純比較ができない）ことを意味します。
+      価格の安い順に、最大30件まで表示します。<br>
+      施設名のリンクは、決済画面に直結しない「プラン一覧ページ」を開きます（安全のため、日付・人数は自動で反映されません）。金額を最終確認したい宿は、そのページから手動で同じ日程・大人1名を指定して調べ直してください。
     </div>
   </section>
 
   <section class="panel" id="resultsPanel" style="display:none;">
-    <h2>検索結果（1泊あたりの支払額）</h2>
+    <h2>検索結果（1泊あたりの実勢価格・安い順）</h2>
     <div style="overflow-x:auto;">
       <table>
         <thead>
           <tr>
             <th>施設</th>
             <th>プラン／部屋</th>
-            <th class="num">施設の目安最安値</th>
-            <th class="num">1名検索の実勢総額</th>
+            <th class="num">料金</th>
             <th>料金区分</th>
-            <th class="num">参考：2名検索1人あたり</th>
-            <th></th>
+            <th>食事</th>
+            <th class="num">評価</th>
           </tr>
         </thead>
         <tbody id="resultsBody"></tbody>
@@ -283,43 +286,31 @@
     </div>
   </section>
 
-  <div class="empty" id="emptyMsg">まだ検索していません。条件を入力して「検索して突き合わせる」を押してください。</div>
+  <div class="empty" id="emptyMsg">まだ検索していません。条件を入力して「検索する」を押してください。</div>
 
 </div>
 
 <script>
-const AREAS = [
-  {name:"仙台", lat:38.260559, lng:140.882194},
-  {name:"青森", lat:40.824623, lng:140.742938},
-  {name:"盛岡", lat:39.700813, lng:141.135288},
-  {name:"秋田", lat:39.717936, lng:140.102725},
-  {name:"山形", lat:38.240436, lng:140.363069},
-  {name:"福島", lat:37.754114, lng:140.474425},
-  {name:"郡山", lat:37.400832, lng:140.383117},
-  {name:"会津若松", lat:37.494328, lng:139.929781},
-  {name:"弘前", lat:40.603135, lng:140.463840},
-];
+const TOHOKU_PREFS = ['aomori','iwate','miyagi','akita','yamagata','fukushima'];
 
-const areaSel = document.getElementById('area');
-AREAS.forEach((a,i)=>{
-  const opt = document.createElement('option');
-  opt.value = i; opt.textContent = a.name + "駅 半径2km";
-  areaSel.appendChild(opt);
-});
-
-// default dates: tomorrow / day after
 function fmt(d){ return d.toISOString().slice(0,10); }
 const t1 = new Date(); t1.setDate(t1.getDate()+1);
 const t2 = new Date(); t2.setDate(t2.getDate()+2);
 document.getElementById('checkin').value = fmt(t1);
 document.getElementById('checkout').value = fmt(t2);
 
-// load saved appId
 (async()=>{
   try{
     const r = await window.storage.get('rakuten-app-id', false);
     if(r && r.value) document.getElementById('appId').value = r.value;
-  }catch(e){ /* no saved value yet */ }
+  }catch(e){}
+  try{
+    const cached = await window.storage.get('rakuten-area-tree', false);
+    if(cached && cached.value){
+      const tree = JSON.parse(cached.value);
+      populateSmallSelect(tree);
+    }
+  }catch(e){ /* キャッシュなし、初回は読み込みボタンで取得 */ }
 })();
 
 function jsonp(url){
@@ -327,83 +318,31 @@ function jsonp(url){
     const cbName = 'cb_' + Math.random().toString(36).slice(2);
     const script = document.createElement('script');
     let done = false;
-    window[cbName] = (data)=>{
-      done = true;
-      resolve(data);
-      cleanup();
-    };
-    function cleanup(){
-      delete window[cbName];
-      script.remove();
-    }
+    window[cbName] = (data)=>{ done = true; resolve(data); cleanup(); };
+    function cleanup(){ delete window[cbName]; script.remove(); }
     script.onerror = ()=>{
       if(!done){ reject(new Error('通信に失敗しました（アプリIDや通信環境を確認してください）')); cleanup(); }
     };
-    setTimeout(()=>{ if(!done){ reject(new Error('タイムアウトしました')); cleanup(); } }, 12000);
+    setTimeout(()=>{ if(!done){ reject(new Error('タイムアウトしました')); cleanup(); } }, 15000);
     script.src = url + '&callback=' + cbName;
     document.body.appendChild(script);
   });
 }
 
-function buildUrl(params){
-  const base = 'https://openapi.rakuten.co.jp/engine/api/Travel/VacantHotelSearch/20170426?';
-  const qs = Object.entries(params).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
-  return base + qs;
-}
-
-async function searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, adultNum, onRetry, apiSort, page, onsenOnly){
-  try{
-    return await searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum, apiSort, page, onsenOnly);
-  }catch(firstErr){
-    if(onRetry) onRetry();
-    await new Promise(r=>setTimeout(r, 800));
-    try{
-      return await searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum, apiSort, page, onsenOnly);
-    }catch(secondErr){
-      throw new Error(secondErr.message + '（自動リトライ後も失敗）');
-    }
-  }
-}
-
-async function searchAdultNum(area, checkin, checkout, appId, accessKey, adultNum, apiSort, page, onsenOnly){
-  const params = {
-    applicationId: appId,
-    accessKey: accessKey,
-    format: 'json',
-    formatVersion: 2,
-    datumType: 1,
-    latitude: area.lat,
-    longitude: area.lng,
-    searchRadius: 2,
-    checkinDate: checkin,
-    checkoutDate: checkout,
-    adultNum: adultNum,
-    roomNum: 1,
-    searchPattern: 1,
-    responseType: 'middle',
-    hits: 30,
-    page: page || 1,
-    sort: apiSort || '+roomCharge'
-  };
-  if(onsenOnly) params.squeezeCondition = 'onsen';
-  const url = buildUrl(params);
-
-  // まず通常のfetchを試す（新APIがCORS対応している可能性があるため）
+async function apiFetch(url){
   try{
     const res = await fetch(url, { method:'GET' });
     const text = await res.text();
     let data;
     try{ data = JSON.parse(text); }
-    catch(parseErr){ throw new Error(`fetchは通ったが応答がJSONではありません（HTTP ${res.status}）: ${text.slice(0,200)}`); }
+    catch(parseErr){ throw new Error(`fetchは通ったが応答がJSONではありません（HTTP ${res.status}）`); }
     if(!res.ok || data.error){
       throw new Error(`HTTP ${res.status} ${data.error || ''} ${data.error_description || ''}`.trim());
     }
     return data;
   }catch(fetchErr){
-    // fetch失敗（CORSブロック等）→ JSONPにフォールバック
     console.warn('fetch失敗、JSONPにフォールバック:', fetchErr.message);
   }
-
   const data = await jsonp(url);
   if(data && data.error){
     throw new Error(`[JSONP] ${data.error}: ${data.error_description || ''}`);
@@ -411,14 +350,175 @@ async function searchAdultNum(area, checkin, checkout, appId, accessKey, adultNu
   return data;
 }
 
+async function apiFetchWithRetry(url, onRetry){
+  try{
+    return await apiFetch(url);
+  }catch(firstErr){
+    if(onRetry) onRetry();
+    await new Promise(r=>setTimeout(r, 800));
+    try{
+      return await apiFetch(url);
+    }catch(secondErr){
+      throw new Error(secondErr.message + '（自動リトライ後も失敗）');
+    }
+  }
+}
+
+// ---- 地区コードAPI（GetAreaClass）まわり ----
+
+function findByKey(arr, key){
+  let val;
+  (arr||[]).forEach(item=>{ if(item && item[key]!==undefined) val = item[key]; });
+  return val;
+}
+
+function parseAreaTree(data){
+  // 実際のレスポンス構造: areaClasses.largeClasses[].largeClass[] の中に
+  // {largeClassCode,largeClassName} と {middleClasses:[...]} が混在している（XML由来の古い形式）
+  const result = {};
+  const largeClassesArr = (data.areaClasses && data.areaClasses.largeClasses) || [];
+  largeClassesArr.forEach(lc=>{
+    const middleClasses = findByKey(lc.largeClass, 'middleClasses') || [];
+    middleClasses.forEach(mc=>{
+      const midCode = findByKey(mc.middleClass, 'middleClassCode');
+      const midName = findByKey(mc.middleClass, 'middleClassName');
+      const smallClassesArr = findByKey(mc.middleClass, 'smallClasses') || [];
+      const smalls = smallClassesArr.map(sc=>({
+        code: findByKey(sc.smallClass, 'smallClassCode'),
+        name: findByKey(sc.smallClass, 'smallClassName'),
+      })).filter(s=>s.code);
+      if(midCode) result[midCode] = { name: midName, smalls };
+    });
+  });
+  return result;
+}
+
+function populateSmallSelect(tree){
+  window.__areaTree = tree;
+  const prefCode = document.getElementById('prefSelect').value;
+  const smallSel = document.getElementById('areaSmallSelect');
+  smallSel.innerHTML = '';
+  const entry = tree[prefCode];
+  if(!entry || !entry.smalls || entry.smalls.length===0){
+    smallSel.innerHTML = '<option value="">この県の地区が見つかりませんでした</option>';
+    return;
+  }
+  entry.smalls.forEach(s=>{
+    const opt = document.createElement('option');
+    opt.value = s.code;
+    opt.textContent = s.name;
+    smallSel.appendChild(opt);
+  });
+}
+
+async function loadAreaTree(){
+  const appId = document.getElementById('appId').value.trim();
+  const accessKey = document.getElementById('accessKey').value.trim();
+  const statusMsg = document.getElementById('statusMsg');
+  const loadBtn = document.getElementById('loadAreaBtn');
+
+  if(!appId || !accessKey){
+    statusMsg.className='status err';
+    statusMsg.textContent = '地区一覧の読み込みにも、アプリID・アクセスキーが必要です';
+    return;
+  }
+
+  loadBtn.disabled = true;
+  statusMsg.className='status';
+  statusMsg.textContent = '地区一覧を読み込み中…（全国分なので少し時間がかかります）';
+
+  try{
+    const url = `https://openapi.rakuten.co.jp/engine/api/Travel/GetAreaClass/20140210?applicationId=${encodeURIComponent(appId)}&accessKey=${encodeURIComponent(accessKey)}&format=json&formatVersion=2`;
+    const data = await apiFetchWithRetry(url, ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
+    const tree = parseAreaTree(data);
+
+    const gotAny = TOHOKU_PREFS.some(p=>tree[p] && tree[p].smalls.length>0);
+    if(!gotAny){
+      console.log('地区コードAPI 生データ（調査用・先頭3000文字）:', JSON.stringify(data).slice(0,3000));
+      statusMsg.className='status err';
+      statusMsg.textContent = '東北6県のデータが見つかりませんでした。開発者コンソールに生データを出力したので確認してください。';
+      loadBtn.disabled = false;
+      return;
+    }
+
+    try{ await window.storage.set('rakuten-area-tree', JSON.stringify(tree), false); }catch(e){}
+    populateSmallSelect(tree);
+    statusMsg.textContent = '地区一覧を読み込みました。「地区」欄から選び直してください。';
+  }catch(err){
+    statusMsg.className='status err';
+    statusMsg.textContent = 'エラー: ' + err.message;
+  }finally{
+    loadBtn.disabled = false;
+  }
+}
+
+document.getElementById('prefSelect').addEventListener('change', ()=>{
+  if(window.__areaTree) populateSmallSelect(window.__areaTree);
+});
+document.getElementById('loadAreaBtn').addEventListener('click', loadAreaTree);
+
+// ---- 空室検索API（VacantHotelSearch）まわり ----
+
+function buildSearchUrl(params){
+  const base = 'https://openapi.rakuten.co.jp/engine/api/Travel/VacantHotelSearch/20170426?';
+  const qs = Object.entries(params).filter(([k,v])=>v!==undefined && v!==null && v!=='')
+    .map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+  return base + qs;
+}
+
+async function searchOnce(prefCode, smallCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge){
+  const params = {
+    applicationId: appId,
+    accessKey: accessKey,
+    format: 'json',
+    formatVersion: 2,
+    largeClassCode: 'japan',
+    middleClassCode: prefCode,
+    smallClassCode: smallCode,
+    checkinDate: checkin,
+    checkoutDate: checkout,
+    adultNum: 1,
+    roomNum: 1,
+    searchPattern: 1,
+    responseType: 'middle',
+    hits: 30,
+    page: 1,
+    sort: '+roomCharge'
+  };
+  if(onsenOnly) params.squeezeCondition = 'onsen';
+  if(minCharge) params.minCharge = minCharge;
+  if(maxCharge) params.maxCharge = maxCharge;
+  const url = buildSearchUrl(params);
+  return await apiFetch(url);
+}
+
+async function searchWithRetry(prefCode, smallCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, onRetry){
+  try{
+    return await searchOnce(prefCode, smallCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge);
+  }catch(firstErr){
+    if(onRetry) onRetry();
+    await new Promise(r=>setTimeout(r, 800));
+    try{
+      return await searchOnce(prefCode, smallCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge);
+    }catch(secondErr){
+      throw new Error(secondErr.message + '（自動リトライ後も失敗）');
+    }
+  }
+}
+
+function mealText(room){
+  if(!room) return '不明';
+  const b = room.withBreakfastFlag===1 ? '朝食○' : '朝食×';
+  const d = room.withDinnerFlag===1 ? '夕食○' : '夕食×';
+  return b + ' / ' + d;
+}
+
 function extractRows(data){
   const rows = [];
   if(!data || !data.hotels) return rows;
 
   data.hotels.forEach(hotelEntry=>{
-    // hotels[]の各要素はノードの配列： [{hotelBasicInfo},{hotelDetailInfo},{hotelReserveInfo},{roomInfo:[{roomBasicInfo},{dailyCharge}]}]
     const nodes = Array.isArray(hotelEntry) ? hotelEntry : [hotelEntry];
-
     let basic=null, roomInfoArr=null;
     nodes.forEach(node=>{
       if(node.hotelBasicInfo) basic = node.hotelBasicInfo;
@@ -433,22 +533,23 @@ function extractRows(data){
         if(rn.dailyCharge) daily = rn.dailyCharge;
       });
     }
+    if(!daily || daily.total===null || daily.total===undefined) return;
 
     rows.push({
       hotelNo: basic.hotelNo,
       hotelName: basic.hotelName,
-      hotelMinCharge: basic.hotelMinCharge,
       url: basic.hotelInformationUrl,
-      reserveUrl: room ? room.reserveUrl : null,
-      planId: room ? room.planId : null,
+      planListUrl: basic.planListUrl,
+      reviewAverage: basic.reviewAverage,
+      reviewCount: basic.reviewCount,
       roomName: room ? room.roomName : '(部屋情報なし)',
       planName: room ? room.planName : '',
-      total: daily ? daily.total : null,
-      rakutenCharge: daily ? daily.rakutenCharge : null,
-      chargeFlag: daily ? daily.chargeFlag : null,
+      meal: mealText(room),
+      total: daily.total,
+      chargeFlag: daily.chargeFlag,
     });
   });
-  return rows;
+  return rows.sort((a,b)=>a.total-b.total);
 }
 
 function yen(n){
@@ -459,73 +560,44 @@ function yen(n){
 async function runSearch(){
   const appId = document.getElementById('appId').value.trim();
   const accessKey = document.getElementById('accessKey').value.trim();
-  const area = AREAS[Number(areaSel.value)];
+  const prefCode = document.getElementById('prefSelect').value;
+  const smallCode = document.getElementById('areaSmallSelect').value;
   const checkin = document.getElementById('checkin').value;
   const checkout = document.getElementById('checkout').value;
-  const doCompare = document.getElementById('compare2').checked;
   const onsenOnly = document.getElementById('onsenOnly').checked;
-  const sortMode = document.getElementById('sortMode').value; // 'gap' or 'price'
+  const minCharge = document.getElementById('minCharge').value.trim();
+  const maxCharge = document.getElementById('maxCharge').value.trim();
+  const minReview = parseFloat(document.getElementById('minReview').value) || 0;
+  const minReviewCount = parseInt(document.getElementById('minReviewCount').value) || 0;
   const statusMsg = document.getElementById('statusMsg');
   const runBtn = document.getElementById('runBtn');
 
   if(!appId){ statusMsg.textContent = 'アプリIDを入力してください'; statusMsg.className='status err'; return; }
-  if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください（2026年仕様変更以降は必須です）'; statusMsg.className='status err'; return; }
+  if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください'; statusMsg.className='status err'; return; }
+  if(!smallCode){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して、地区を選んでください'; statusMsg.className='status err'; return; }
   if(!checkin || !checkout){ statusMsg.textContent = '日付を指定してください'; statusMsg.className='status err'; return; }
 
   runBtn.disabled = true;
   statusMsg.className = 'status';
-  statusMsg.textContent = '検索中…（大人1名' + (doCompare ? '／大人2名' : '') + '）';
+  statusMsg.textContent = '検索中…';
+
+  try{ await window.storage.set('rakuten-app-id', appId, false); }catch(e){}
 
   try{
-    await window.storage.set('rakuten-app-id', appId, false);
-  }catch(e){}
-
-  try{
-    let rows1 = [];
-    let apiCountTotal = 0;
-
-    if(sortMode === 'gap'){
-      // ズレ優先モード：安い順の偏りを避けるため、おすすめ順(standard)で複数ページを幅広く取得
-      const pagesToFetch = [1,2,3];
-      for(const pg of pagesToFetch){
-        statusMsg.textContent = `検索中…（大人1名 / ${pg}ページ目）`;
-        const d = await searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, 1,
-          ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; }, 'standard', pg, onsenOnly);
-        if(d && d.pagingInfo) apiCountTotal = d.pagingInfo.recordCount || apiCountTotal;
-        rows1 = rows1.concat(extractRows(d));
-      }
-      // 差額（1名実勢総額－施設の目安最安値）が大きい順に並べ替え。両方の値がある行のみ対象。
-      rows1 = rows1
-        .filter(r=>r.total!==null && r.hotelMinCharge!==null && r.hotelMinCharge>0)
-        .sort((a,b)=> (b.total - b.hotelMinCharge) - (a.total - a.hotelMinCharge))
-        .slice(0, 40);
-    } else {
-      const d = await searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, 1,
-        ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; }, '+roomCharge', 1, onsenOnly);
-      apiCountTotal = (d && d.pagingInfo) ? d.pagingInfo.recordCount : 0;
-      rows1 = extractRows(d);
+    const data = await searchWithRetry(prefCode, smallCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
+      ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
+    let rows = extractRows(data);
+    const beforeFilterCount = rows.length;
+    if(minReview > 0 || minReviewCount > 0){
+      rows = rows.filter(r => (r.reviewAverage||0) >= minReview && (r.reviewCount||0) >= minReviewCount);
     }
+    const apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
+    const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
 
-    let map2 = {};
-    if(doCompare){
-      statusMsg.textContent = '検索中…（大人2名で比較データを取得）';
-      const data2 = await searchAdultNumWithRetry(area, checkin, checkout, appId, accessKey, 2,
-        ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; }, 'standard', 1, onsenOnly);
-      const rows2 = extractRows(data2);
-      // 「同じプラン(planId)」が2名検索でも見つかった場合のみ、1人あたり換算を対応付ける。
-      // 別プランで代用することはしない（比較の信頼性を優先）。
-      rows2.forEach(r=>{
-        if(r.total===null || r.planId===null) return;
-        const key = r.hotelNo + '_' + r.planId;
-        map2[key] = r.total / 2; // 2名分の合計を1人あたりに換算
-      });
-    }
-
-    renderRows(rows1, map2, area.name);
-    const apiCount = apiCountTotal || '不明';
-    statusMsg.textContent = `${area.name}：APIの検索ヒット数=${apiCount}件 ／ 画面に表示できたプラン=${rows1.length}件（${checkin}〜${checkout}）`;
-    if(apiCount !== '不明' && Number(apiCount) > 0 && rows1.length === 0){
-      statusMsg.textContent += ' ※APIはヒットしているのに表示0件＝解析側の不具合の可能性大。開発者コンソールに詳細を出力しました。';
+    renderRows(rows, areaLabel);
+    statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得=${beforeFilterCount}件 ／ 評価絞込後=${rows.length}件（${checkin}〜${checkout}）`;
+    if(beforeFilterCount > 0 && rows.length === 0){
+      statusMsg.textContent += ' ※評価・件数の基準で全て除外されました。基準を緩めてもう一度お試しください。';
     }
   }catch(err){
     statusMsg.className = 'status err';
@@ -535,7 +607,7 @@ async function runSearch(){
   }
 }
 
-function renderRows(rows, map2, areaName){
+function renderRows(rows, areaLabel){
   const panel = document.getElementById('resultsPanel');
   const empty = document.getElementById('emptyMsg');
   const tbody = document.getElementById('resultsBody');
@@ -544,7 +616,7 @@ function renderRows(rows, map2, areaName){
   if(rows.length === 0){
     panel.style.display='none';
     empty.style.display='block';
-    empty.textContent = areaName + ' で、指定条件・大人1名では空室のあるプランが見つかりませんでした（1人プラン非対応の宿が多いエリアの可能性があります）。';
+    empty.textContent = areaLabel + ' で、指定条件・大人1名では空室のあるプランが見つかりませんでした。価格帯を広げるか、温泉宿限定を外して試してください。';
     return;
   }
   empty.style.display='none';
@@ -552,35 +624,14 @@ function renderRows(rows, map2, areaName){
 
   rows.forEach(r=>{
     const tr = document.createElement('tr');
-
-    const min = r.hotelMinCharge;
-    const total = r.total;
-    let flagHtml = '';
-    if(min!==null && total!==null){
-      const diff = total - min;
-      const diffRatio = min>0 ? diff/min : 0;
-      if(diffRatio > 0.15){
-        flagHtml = `<span class="flag">要確認 差額${yen(diff)}</span>`;
-      } else {
-        flagHtml = `<span class="flag ok">目安と近い</span>`;
-      }
-    }
-
     const chargeFlagText = r.chargeFlag===0 ? '1人あたり表示' : (r.chargeFlag===1 ? '1室あたり表示' : '不明');
-    const key2 = r.hotelNo + '_' + r.planId;
-    const compareVal = map2[key2];
-    const compareCell = compareVal!==undefined
-      ? yen(Math.round(compareVal))
-      : '<span style="color:var(--ink-soft);font-size:.72rem;">同一プラン無し</span>';
-
     tr.innerHTML = `
-      <td class="hname"><a href="${r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
+      <td class="hname"><a href="${r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
       <td>${r.roomName || ''}<div class="plan">${r.planName || ''}</div></td>
-      <td class="num">${yen(min)}</td>
-      <td class="num">${yen(total)}</td>
+      <td class="num">${yen(r.total)}</td>
       <td><span class="badge">${chargeFlagText}</span></td>
-      <td class="num">${compareCell}</td>
-      <td>${flagHtml}</td>
+      <td><span class="badge">${r.meal}</span></td>
+      <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
     `;
     tbody.appendChild(tr);
   });
