@@ -342,6 +342,18 @@ const t2 = new Date(); t2.setDate(t2.getDate()+2);
 document.getElementById('checkin').value = fmt(t1);
 document.getElementById('checkout').value = fmt(t2);
 
+document.getElementById('checkin').addEventListener('change', ()=>{
+  const checkinEl = document.getElementById('checkin');
+  const checkoutEl = document.getElementById('checkout');
+  const inDate = new Date(checkinEl.value);
+  const minOut = new Date(inDate); minOut.setDate(minOut.getDate()+1);
+  checkoutEl.min = fmt(minOut);
+  const outDate = new Date(checkoutEl.value);
+  if(!checkoutEl.value || isNaN(outDate.getTime()) || outDate <= inDate){
+    checkoutEl.value = fmt(minOut);
+  }
+});
+
 (async()=>{
   try{
     const r = await window.storage.get('rakuten-app-id', false);
@@ -713,7 +725,7 @@ function extractStationWalk(accessText){
   const stationName = stationMatch[1];
   const idx = stripped.indexOf(stationMatch[0]);
   const window = stripped.slice(idx, idx+40);
-  const walkMatch = window.match(/徒歩\s*(?:約\s*)?(\d+)\s*分/);
+  const walkMatch = window.match(/徒歩\D{0,5}?(\d+)\s*分/);
   if(!walkMatch) return null;
   return { station: stationName, minutes: walkMatch[1] };
 }
@@ -804,6 +816,11 @@ async function runSearch(){
   if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください'; statusMsg.className='status err'; return; }
   if(!smallCode && !window.__freeLocation){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して地区を選ぶか、自由入力で場所を確認してください'; statusMsg.className='status err'; return; }
   if(!checkin || !checkout){ statusMsg.textContent = '日付を指定してください'; statusMsg.className='status err'; return; }
+  if(new Date(checkout) <= new Date(checkin)){
+    statusMsg.textContent = `チェックアウト日（${checkout}）がチェックイン日（${checkin}）以前になっています。チェックアウトをチェックインより後の日付にしてください`;
+    statusMsg.className='status err';
+    return;
+  }
 
   runBtn.disabled = true;
   statusMsg.className = 'status';
