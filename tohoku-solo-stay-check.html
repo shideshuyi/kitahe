@@ -366,28 +366,17 @@ async function apiFetchWithRetry(url, onRetry){
 
 // ---- 地区コードAPI（GetAreaClass）まわり ----
 
-function findByKey(arr, key){
-  let val;
-  (arr||[]).forEach(item=>{ if(item && item[key]!==undefined) val = item[key]; });
-  return val;
-}
-
 function parseAreaTree(data){
-  // 実際のレスポンス構造: areaClasses.largeClasses[].largeClass[] の中に
-  // {largeClassCode,largeClassName} と {middleClasses:[...]} が混在している（XML由来の古い形式）
+  // 実際のレスポンス構造：largeClasses[]の各要素に直接middleClassCode等が入るフラット型
+  // （largeClass/middleClass配列でラップされる古い形式ではなかった）
   const result = {};
-  const largeClassesArr = (data.areaClasses && data.areaClasses.largeClasses) || [];
-  largeClassesArr.forEach(lc=>{
-    const middleClasses = findByKey(lc.largeClass, 'middleClasses') || [];
-    middleClasses.forEach(mc=>{
-      const midCode = findByKey(mc.middleClass, 'middleClassCode');
-      const midName = findByKey(mc.middleClass, 'middleClassName');
-      const smallClassesArr = findByKey(mc.middleClass, 'smallClasses') || [];
-      const smalls = smallClassesArr.map(sc=>({
-        code: findByKey(sc.smallClass, 'smallClassCode'),
-        name: findByKey(sc.smallClass, 'smallClassName'),
-      })).filter(s=>s.code);
-      if(midCode) result[midCode] = { name: midName, smalls };
+  const largeClasses = (data.areaClasses && data.areaClasses.largeClasses) || [];
+  largeClasses.forEach(lc=>{
+    (lc.middleClasses||[]).forEach(mc=>{
+      const smalls = (mc.smallClasses||[])
+        .map(sc=>({code: sc.smallClassCode, name: sc.smallClassName}))
+        .filter(s=>s.code);
+      if(mc.middleClassCode) result[mc.middleClassCode] = { name: mc.middleClassName, smalls };
     });
   });
   return result;
