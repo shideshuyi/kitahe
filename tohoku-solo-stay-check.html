@@ -230,24 +230,23 @@
       </div>
     <div class="checkrow" style="margin-top:8px; align-items:flex-start; flex-direction:column;">
       <label style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-bottom:4px;">
-        実験的な絞り込み（3つとも数値で入力した場合のみ有効・任意。地名ではなく数値を入れてください）
+        駅を中心にさらに絞り込む（任意。座標は内部で自動設定されます）
       </label>
       <div class="grid" style="width:100%;">
         <div>
-          <label>中心緯度（数値のみ）</label>
-          <input type="text" id="narrowLat" placeholder="例：38.28146847">
+          <label>駅を選ぶ</label>
+          <select id="narrowStation">
+            <option value="">絞り込まない（地区全体）</option>
+          </select>
         </div>
         <div>
-          <label>中心経度（数値のみ）</label>
-          <input type="text" id="narrowLng" placeholder="例：140.869356">
+          <label>半径km</label>
+          <select id="narrowKm">
+            <option value="1">1km</option>
+            <option value="2">2km</option>
+            <option value="3" selected>3km（API上限）</option>
+          </select>
         </div>
-        <div>
-          <label>半径km（最大3.0）</label>
-          <input type="text" id="narrowKm" placeholder="例：3">
-        </div>
-      </div>
-      <div style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.7rem; color:var(--ink-soft); margin-top:4px;">
-        例（仙台駅）：緯度 38.28146847 ／ 経度 140.869356 ／ 半径 3
       </div>
     </div>
     <div>
@@ -415,6 +414,27 @@ function parseAreaTree(data){
   return result;
 }
 
+const STATION_COORDS = {
+  aomori:   [{name:'青森駅',   lat:40.824623, lng:140.742938}, {name:'弘前駅', lat:40.603135, lng:140.463840}],
+  iwate:    [{name:'盛岡駅',   lat:39.700813, lng:141.135288}],
+  miyagi:   [{name:'仙台駅',   lat:38.260559, lng:140.882194}],
+  akita:    [{name:'秋田駅',   lat:39.717936, lng:140.102725}],
+  yamagata: [{name:'山形駅',   lat:38.240436, lng:140.363069}],
+  fukushima:[{name:'福島駅',   lat:37.754114, lng:140.474425}, {name:'郡山駅', lat:37.400832, lng:140.383117}, {name:'会津若松駅', lat:37.494328, lng:139.929781}],
+};
+
+function updateStationSelect(){
+  const prefCode = document.getElementById('prefSelect').value;
+  const sel = document.getElementById('narrowStation');
+  sel.innerHTML = '<option value="">絞り込まない（地区全体）</option>';
+  (STATION_COORDS[prefCode] || []).forEach((st, i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = st.name;
+    sel.appendChild(opt);
+  });
+}
+
 function populateSmallSelect(tree){
   window.__areaTree = tree;
   const prefCode = document.getElementById('prefSelect').value;
@@ -501,9 +521,11 @@ async function loadAreaTree(){
 
 document.getElementById('prefSelect').addEventListener('change', ()=>{
   if(window.__areaTree) populateSmallSelect(window.__areaTree);
+  updateStationSelect();
 });
 document.getElementById('areaSmallSelect').addEventListener('change', updateDetailSelect);
 document.getElementById('loadAreaBtn').addEventListener('click', loadAreaTree);
+updateStationSelect();
 
 // ---- 空室検索API（VacantHotelSearch）まわり ----
 
@@ -670,30 +692,13 @@ async function runSearch(){
   const maxCharge = document.getElementById('maxCharge').value.trim();
   const minReview = parseFloat(document.getElementById('minReview').value) || 0;
   const minReviewCount = parseInt(document.getElementById('minReviewCount').value) || 0;
-  const narrowLat = document.getElementById('narrowLat').value.trim();
-  const narrowLng = document.getElementById('narrowLng').value.trim();
-  const narrowKm = document.getElementById('narrowKm').value.trim();
-
-  const narrowFields = [
-    {name:'中心緯度', value:narrowLat},
-    {name:'中心経度', value:narrowLng},
-    {name:'半径km', value:narrowKm},
-  ];
-  const narrowFilled = narrowFields.filter(f=>f.value!=='');
-  if(narrowFilled.length > 0 && narrowFilled.length < 3){
-    const missing = narrowFields.filter(f=>f.value==='').map(f=>f.name).join('・');
-    statusMsg.textContent = `実験的な絞り込みは、緯度・経度・半径の3つ全部を入力しないと使えません（${missing}が未入力です）`;
-    statusMsg.className='status err';
-    return;
-  }
-  if(narrowFilled.length === 3){
-    for(const f of narrowFields){
-      if(isNaN(parseFloat(f.value)) || !isFinite(Number(f.value))){
-        statusMsg.textContent = `「${f.name}」には地名ではなく数値を入力してください（今は「${f.value}」になっています）`;
-        statusMsg.className='status err';
-        return;
-      }
-    }
+  const narrowStationIdx = document.getElementById('narrowStation').value;
+  const narrowKm = document.getElementById('narrowKm').value;
+  let narrowLat = '', narrowLng = '';
+  if(narrowStationIdx !== ''){
+    const stationList = STATION_COORDS[prefCode] || [];
+    const st = stationList[parseInt(narrowStationIdx, 10)];
+    if(st){ narrowLat = st.lat; narrowLng = st.lng; }
   }
   const statusMsg = document.getElementById('statusMsg');
   const runBtn = document.getElementById('runBtn');
@@ -722,7 +727,8 @@ async function runSearch(){
     const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
 
     renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, smallCode, checkin, checkout)})), areaLabel);
-    const narrowNote = (narrowLat && narrowLng && narrowKm) ? `［実験：緯度経度+${narrowKm}km も同時送信］` : '';
+    const stationName = narrowStationIdx !== '' ? (STATION_COORDS[prefCode]||[])[parseInt(narrowStationIdx,10)]?.name : null;
+    const narrowNote = stationName ? `［${stationName}中心 半径${narrowKm}kmに絞り込み］` : '';
     statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得=${beforeFilterCount}件 ／ 評価絞込後=${rows.length}件（${checkin}〜${checkout}）${narrowNote}`;
     if(beforeFilterCount > 0 && rows.length === 0){
       statusMsg.textContent += ' ※評価・件数の基準で全て除外されました。基準を緩めてもう一度お試しください。';
