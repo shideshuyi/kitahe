@@ -676,17 +676,20 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
 }
 
 async function searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation, onRetry){
-  try{
-    return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation);
-  }catch(firstErr){
-    if(onRetry) onRetry();
-    await new Promise(r=>setTimeout(r, 800));
+  const delays = [800, 1600, 3000]; // 段階的に間隔を伸ばす（アクセス制限対策）
+  let lastErr;
+  for(let i=0; i<=delays.length; i++){
     try{
       return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation);
-    }catch(secondErr){
-      throw new Error(secondErr.message + '（自動リトライ後も失敗）');
+    }catch(err){
+      lastErr = err;
+      if(i < delays.length){
+        if(onRetry) onRetry(i+1, delays.length+1);
+        await new Promise(r=>setTimeout(r, delays[i]));
+      }
     }
   }
+  throw new Error(lastErr.message + `（${delays.length+1}回試しましたが失敗しました）`);
 }
 
 function buildConditionAwarePlanUrl(hotelNo, prefCode, smallCode, checkinISO, checkoutISO){
@@ -831,7 +834,7 @@ async function runSearch(){
   try{
     const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
       narrowLat, narrowLng, narrowKm, !!window.__freeLocation,
-      ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
+      (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
     let rows = extractRows(data);
     const beforeFilterCount = rows.length;
     if(minReview > 0 || minReviewCount > 0){
@@ -853,7 +856,8 @@ async function runSearch(){
     statusMsg.className = 'status err';
     statusMsg.textContent = 'エラー: ' + err.message;
   }finally{
-    runBtn.disabled = false;
+    // 連打による短時間集中アクセスを防ぐため、1.5秒はボタンを無効化する
+    setTimeout(()=>{ runBtn.disabled = false; }, 1500);
   }
 }
 
