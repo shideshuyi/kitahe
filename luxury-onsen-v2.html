@@ -707,7 +707,17 @@ async function runSearch(){
 
   if(!appId){ statusMsg.textContent = 'アプリIDを入力してください'; statusMsg.className='status err'; return; }
   if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください'; statusMsg.className='status err'; return; }
-  if(!window.__areaTree){ statusMsg.textContent = '先に都道府県を選び、地区一覧を読み込んでください'; statusMsg.className='status err'; return; }
+  if(!window.__areaTree){
+    // まだ地区一覧が読み込まれていなければ、エラーにせずここで待って読み込む
+    statusMsg.className = 'status loading';
+    statusMsg.textContent = '地区一覧を準備中…';
+    await loadAreaTree();
+    if(!window.__areaTree){
+      statusMsg.textContent = '地区一覧の読み込みに失敗しました。もう一度「検索する」を押してください';
+      statusMsg.className='status err';
+      return;
+    }
+  }
   if(!checkin || !checkout){ statusMsg.textContent = '日付を指定してください'; statusMsg.className='status err'; return; }
   if(new Date(checkout) <= new Date(checkin)){
     statusMsg.textContent = `チェックアウト日（${checkout}）がチェックイン日（${checkin}）以前になっています。チェックアウトをチェックインより後の日付にしてください`;
