@@ -273,7 +273,7 @@
     <div class="legend">
       代表価格が安い宿順に、最大30件まで表示します（同じ宿の複数プランは1件にまとめ、条件を満たす中で一番安いプランの金額を代表として表示しています）。<br>
       施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。<br>
-      「駅から徒歩」は、施設のアクセス文中にある「駅」の近くに書かれた「徒歩◯分」を自動で抜き出した参考値です。書き方によっては抜き出せない宿もあり、その場合は「―」と表示されます（数字自体は施設側の記載をそのまま転記していますが、正確な意味の徒歩分数かは保証できないため「参考」としています）。マウスを乗せるとアクセス文の全文を確認できます。
+      「客室露天風呂」は、プラン名・部屋名に「露天風呂付」等の記載がある場合のみ「○」にしています（施設側が自分の商品として明記している情報なので、比較的信頼できます）。「―」は「無い」と確定した訳ではなく、今回取得したプランの中では記載を確認できなかった、という意味です。気になる宿は施設名のリンク先で最終確認してください。
     </div>
   </section>
 
@@ -286,7 +286,7 @@
             <th>施設</th>
             <th>エリア</th>
             <th class="num">代表価格</th>
-            <th class="num">駅から徒歩</th>
+            <th class="num">客室露天風呂</th>
             <th class="num">評価</th>
           </tr>
         </thead>
@@ -623,12 +623,26 @@ function extractStationWalk(accessText){
   return { station: stationName, minutes: walkMatch[1] };
 }
 
+function hasRotenburo(roomName, planName){
+  const text = `${roomName||''} ${planName||''}`;
+  // プラン名・部屋名に施設側が明記している表記のみを拾う（誤検知を避けるため自由文は見ない）
+  return /露天風呂(付|つき|附)|客室露天|離れ.{0,5}露天|専用露天/.test(text);
+}
+
 function dedupeByHotel(rows){
   const map = new Map();
   rows.forEach(r=>{
+    const rotenburo = hasRotenburo(r.roomName, r.planName);
     const existing = map.get(r.hotelNo);
-    if(!existing || r.total < existing.total){
-      map.set(r.hotelNo, r);
+    if(!existing){
+      map.set(r.hotelNo, {...r, hasRotenburoAnyPlan: rotenburo});
+    } else {
+      const flag = existing.hasRotenburoAnyPlan || rotenburo;
+      if(r.total < existing.total){
+        map.set(r.hotelNo, {...r, hasRotenburoAnyPlan: flag});
+      } else {
+        existing.hasRotenburoAnyPlan = flag;
+      }
     }
   });
   return Array.from(map.values()).sort((a,b)=>a.total-b.total);
@@ -821,7 +835,7 @@ function renderRows(rows, areaLabel){
       <td class="hname"><a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
       <td>${r.areaName || '—'}</td>
       <td class="num">${yen(r.total)}〜</td>
-      <td class="num" title="${r.access ? r.access.replace(/"/g,'') : ''}">${r.stationWalk ? r.stationWalk.station+' 徒歩'+r.stationWalk.minutes+'分（参考）' : '—'}</td>
+      <td class="num">${r.hasRotenburoAnyPlan ? '○' : '—'}</td>
       <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
     `;
     tbody.appendChild(tr);
