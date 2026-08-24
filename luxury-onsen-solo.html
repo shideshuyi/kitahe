@@ -882,7 +882,7 @@ async function runSearch(){
         }catch(e){
           console.warn(`${sc.name}の検索に失敗、スキップします:`, e.message);
         }
-        await new Promise(r=>setTimeout(r, 400)); // 連続アクセスを避けるための小休止
+        await new Promise(r=>setTimeout(r, 1200)); // 連続アクセスを避けるための小休止（間隔を拡大）
       }
       beforeFilterCount = rows.length;
       apiCount = totalHit;
