@@ -302,7 +302,8 @@
       <div class="legend" style="border-top:none; margin-top:10px; padding-top:0;">
         施設名のリンクは、検索条件が反映された安全なプラン一覧ページを開きます（決済画面には進みません）。<br>
         「特徴」は、プラン名・部屋名に記載がある場合のみタグを表示します（客室露天風呂・離れ・個室食・源泉かけ流し）。表示が無くても「無い」と確定した訳ではなく、確認できなかったという意味です。<br>
-        ドーミーイン・東横イン・スーパーホテル等、主要なビジネスホテルチェーンは、価格帯を満たしていても一覧から除外しています。
+        ドーミーイン・東横イン・スーパーホテル等、主要なビジネスホテルチェーンは、価格帯を満たしていても一覧から除外しています。<br>
+        また、同じ宿の中に2万円未満のプランが1つでもある場合、他のプランが高額でも、その宿ごと除外しています（チェーン名を知らない業態にも対応するためです）。
       </div>
     </details>
   </section>
@@ -679,6 +680,17 @@ function isBusinessChain(hotelName){
   return BUSINESS_CHAIN_PATTERNS.some(p => (hotelName||'').includes(p));
 }
 
+const BUDGET_PLAN_THRESHOLD = 20000; // これ未満のプランを1つでも持つ宿は、高いプランがあっても除外する
+function excludeHotelsWithBudgetPlans(rows){
+  const hasBudgetPlan = new Map();
+  rows.forEach(r=>{
+    if(r.total < BUDGET_PLAN_THRESHOLD){
+      hasBudgetPlan.set(r.hotelNo, true);
+    }
+  });
+  return rows.filter(r => !hasBudgetPlan.get(r.hotelNo));
+}
+
 function hasRotenburo(roomName, planName){
   const text = `${roomName||''} ${planName||''}`;
   // プラン名・部屋名に施設側が明記している表記のみを拾う（誤検知を避けるため自由文は見ない）
@@ -858,6 +870,8 @@ async function runSearch(){
       apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
     }
 
+    // 安いプランを併せ持つ宿は、価格帯フィルタで見えなくなる前にここで除外する
+    rows = excludeHotelsWithBudgetPlans(rows);
     // APIのminChargeは施設単位の目安に対してかかっている可能性があり、
     // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
     const minChargeNum = parseInt(minCharge, 10);
