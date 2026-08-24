@@ -5,205 +5,212 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>東北ひとりで泊まれる高級温泉旅館（試作v2・駅絞り込みなし）</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
+
   :root{
-    --paper: #e9e2d0;
-    --paper-deep: #ded4bc;
-    --ink: #2b2622;
-    --ink-soft: #5c5346;
-    --indigo: #253c56;
-    --indigo-deep: #16283c;
-    --gold: #9c8352;
-    --line: #c9bd9f;
+    --ink: #14181f;
+    --ink-soft: #4a4f58;
+    --stone: #f3efe6;
+    --stone-deep: #e6dfd0;
+    --line: #d9d0bd;
+    --ember: #a8683a;
+    --ember-deep: #7f4d29;
+    --mist: #9195a0;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:
-      repeating-linear-gradient(180deg, transparent 0 38px, #00000006 38px 39px),
-      var(--paper);
+    background:var(--stone);
     color:var(--ink);
-    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
-    padding:28px 16px 60px;
+    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",sans-serif;
+    padding:0 0 72px;
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:900px;margin:0 auto;}
+  .wrap{max-width:880px;margin:0 auto; padding:0 20px;}
 
   header.cover{
-    border:1px solid var(--gold);
-    padding:22px 24px;
-    margin-bottom:22px;
     position:relative;
-    background:var(--paper-deep);
-  }
-  header.cover::before, header.cover::after{
-    content:"";
-    position:absolute; inset:5px;
-    border:1px solid var(--gold);
-    pointer-events:none;
+    padding:64px 0 40px;
+    margin:0 0 32px;
+    background:
+      radial-gradient(ellipse 900px 320px at 15% -10%, rgba(168,104,58,.14), transparent 60%),
+      linear-gradient(180deg, var(--ink) 0%, #1d232d 100%);
+    color:var(--stone);
+    overflow:hidden;
   }
   h1{
-    margin:0 0 6px;
-    font-size:1.5rem;
-    letter-spacing:.08em;
-    color:var(--indigo-deep);
-    font-weight:600;
+    margin:0 0 10px;
+    font-family:"Shippori Mincho",serif;
+    font-weight:700;
+    font-size:1.9rem;
+    letter-spacing:.04em;
+    line-height:1.4;
+    color:#fbf8f2;
   }
   h1 small{
     display:block;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-family:"Zen Kaku Gothic New",sans-serif;
     font-size:.72rem;
-    color:var(--ink-soft);
-    letter-spacing:.04em;
-    margin-top:4px;
-    font-weight:400;
+    color:var(--ember);
+    letter-spacing:.14em;
+    margin-bottom:14px;
+    font-weight:500;
+    text-transform:uppercase;
   }
   .purpose{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.85rem;
-    line-height:1.8;
-    color:var(--ink-soft);
-    margin-top:10px;
+    font-size:.83rem;
+    line-height:1.9;
+    color:#c9cbd1;
+    max-width:640px;
   }
 
   section.panel{
+    background:#fbf9f4;
     border:1px solid var(--line);
-    background:#f2ecdd;
-    padding:18px 20px;
-    margin-bottom:18px;
+    padding:26px 28px;
+    margin-bottom:24px;
   }
   .panel h2{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.8rem;
-    letter-spacing:.1em;
-    color:var(--indigo);
-    margin:0 0 14px;
-    border-left:4px solid var(--indigo);
-    padding-left:8px;
+    font-family:"Shippori Mincho",serif;
+    font-weight:700;
+    font-size:1rem;
+    letter-spacing:.04em;
+    color:var(--ink);
+    margin:0 0 18px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
   }
   .grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:14px 18px;
+    gap:16px 20px;
   }
   label{
     display:block;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.72rem;
-    color:var(--ink-soft);
-    margin-bottom:5px;
+    font-size:.7rem;
+    color:var(--mist);
+    letter-spacing:.03em;
+    margin-bottom:6px;
   }
   input[type=text],input[type=date],select{
     width:100%;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-family:"Zen Kaku Gothic New",sans-serif;
     font-size:.85rem;
-    padding:7px 9px;
-    border:1px solid var(--line);
-    background:#fbf8ef;
+    padding:9px 10px;
+    border:none;
+    border-bottom:1.5px solid var(--line);
+    background:transparent;
     color:var(--ink);
+    border-radius:0;
+    transition:border-color .15s ease;
+  }
+  input[type=text]:focus,input[type=date]:focus,select:focus{
+    outline:none;
+    border-bottom-color:var(--ember);
   }
   .checkrow{
     display:flex; align-items:center; gap:8px;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     font-size:.78rem; color:var(--ink-soft);
-    margin-top:2px;
+    margin-top:4px;
   }
-  .actions{margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .actions{margin-top:22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
   button{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.85rem;
-    padding:9px 22px;
-    background:var(--indigo);
-    color:#f2ecdd;
+    font-family:"Zen Kaku Gothic New",sans-serif;
+    font-size:.82rem;
+    font-weight:500;
+    padding:12px 30px;
+    background:var(--ink);
+    color:var(--stone);
     border:none;
-    letter-spacing:.06em;
+    letter-spacing:.08em;
     cursor:pointer;
+    transition:background .15s ease;
   }
-  button:hover{background:var(--indigo-deep);}
-  button:disabled{background:#9a9384; cursor:default;}
+  button:hover{background:var(--ember-deep);}
+  button:disabled{background:#b7b2a4; cursor:default;}
   .status{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.78rem; color:var(--ink-soft);
+    font-size:.78rem; color:var(--mist);
   }
-  .status.err{color:#b8451f;}
+  .status.err{color:#a3402a;}
   .status.loading{
-    color:var(--indigo);
-    font-weight:600;
+    color:var(--ember-deep);
+    font-weight:500;
     font-size:.85rem;
-    animation: pulse 1.2s ease-in-out infinite;
+    animation: pulse 1.3s ease-in-out infinite;
   }
   @keyframes pulse{
     0%,100%{opacity:1;}
-    50%{opacity:.45;}
+    50%{opacity:.4;}
   }
 
   .legend{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     font-size:.72rem;
-    color:var(--ink-soft);
-    line-height:1.9;
-    margin-top:14px;
-    padding-top:12px;
-    border-top:1px dashed var(--line);
+    color:var(--mist);
+    line-height:2;
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
   }
-  .legend b{color:var(--indigo);}
+  .legend b{color:var(--ink);font-weight:500;}
 
   table{
     width:100%;
     border-collapse:collapse;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.8rem;
-    background:#f6f1e4;
+    font-size:.85rem;
+    background:transparent;
   }
   thead th{
     text-align:left;
     font-size:.68rem;
-    letter-spacing:.05em;
-    color:#f2ecdd;
-    background:var(--indigo);
-    padding:9px 10px;
-    position:sticky; top:0;
+    font-weight:500;
+    letter-spacing:.08em;
+    color:var(--mist);
+    padding:0 10px 12px;
+    border-bottom:1.5px solid var(--ink);
   }
   tbody td{
-    padding:10px 10px;
+    padding:18px 10px;
     border-bottom:1px solid var(--line);
     vertical-align:top;
   }
-  tbody tr:hover{background:#efe6cf;}
-  .hname{font-weight:600; color:var(--ink);}
-  .hname a{color:inherit; text-decoration:none; border-bottom:1px dotted var(--gold);}
-  .plan{font-size:.74rem; color:var(--ink-soft); margin-top:3px;}
+  tbody tr:hover{background:var(--stone-deep);}
+  .hname{font-family:"Shippori Mincho",serif; font-weight:700; font-size:1.02rem; color:var(--ink);}
+  .hname a{color:inherit; text-decoration:none; background-image:linear-gradient(var(--ember),var(--ember)); background-size:0% 1.5px; background-repeat:no-repeat; background-position:0 100%; padding-bottom:2px; transition:background-size .2s ease;}
+  .hname a:hover{background-size:100% 1.5px;}
+  .plan{font-size:.74rem; color:var(--mist); margin-top:4px; font-family:"Zen Kaku Gothic New",sans-serif;}
   .num{
-    font-family:"SFMono-Regular",Consolas,monospace;
     font-variant-numeric:tabular-nums;
     text-align:right;
     white-space:nowrap;
   }
   .badge{
     display:inline-block;
-    font-size:.65rem;
-    padding:1px 6px;
+    font-size:.68rem;
+    padding:3px 9px;
     border:1px solid var(--line);
     color:var(--ink-soft);
     white-space:nowrap;
   }
   .empty{
-    padding:30px; text-align:center;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    color:var(--ink-soft); font-size:.82rem;
+    padding:48px 20px; text-align:center;
+    color:var(--mist); font-size:.85rem;
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-
   <header class="cover">
-    <h1>東北ひとりで泊まれる高級温泉旅館
-      <small>楽天トラベル空室検索API・温泉宿×大人1名固定×価格帯で絞り込んだ「実際の支払額」だけを表示する</small>
-    </h1>
-    <div class="purpose">
-      大人1名・指定日程で楽天トラベルに直接問い合わせ、温泉宿かつ指定した価格帯以上のプランだけを一覧にします。<br>
-      ※正直な注記：楽天のAPIには「旅館だけに絞る」という機能が存在しません。ここでの絞り込みは「温泉宿であること」と「価格帯」だけで、施設が正式な旅館かホテルかまでは判別できません。高価格帯・温泉付きという条件で、実質的に旅館寄りの施設が多く出てくることを狙っていますが、100%旅館だけとは限りません。
+    <div class="wrap">
+      <h1>東北ひとりで泊まれる高級温泉旅館
+        <small>楽天トラベル空室検索API・温泉宿×大人1名固定×価格帯で絞り込んだ「実際の支払額」だけを表示する</small>
+      </h1>
+      <div class="purpose">
+        大人1名・指定日程で楽天トラベルに直接問い合わせ、温泉宿かつ指定した価格帯以上のプランだけを一覧にします。<br>
+        ※正直な注記：楽天のAPIには「旅館だけに絞る」という機能が存在しません。ここでの絞り込みは「温泉宿であること」と「価格帯」だけで、施設が正式な旅館かホテルかまでは判別できません。高価格帯・温泉付きという条件で、実質的に旅館寄りの施設が多く出てくることを狙っていますが、100%旅館だけとは限りません。
+      </div>
     </div>
   </header>
+
+<div class="wrap">
 
   <section class="panel">
     <h2>検索条件</h2>
