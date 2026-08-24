@@ -472,7 +472,7 @@ async function loadAreaTree(){
 
   try{
     const url = `https://openapi.rakuten.co.jp/engine/api/Travel/GetAreaClass/20140210?applicationId=${encodeURIComponent(appId)}&accessKey=${encodeURIComponent(accessKey)}&format=json&formatVersion=2`;
-    const data = await apiFetchWithRetry(url, ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
+    const data = await apiFetchWithRetry(url, ()=>{ statusMsg.textContent = '接続しています…'; });
     const tree = parseAreaTree(data);
 
     const gotAny = TOHOKU_PREFS.some(p=>tree[p] && tree[p].smalls.length>0);
@@ -746,7 +746,7 @@ async function runSearch(){
         statusMsg.textContent = `県全体を検索中…（${i+1}/${smallsToSearch.length}：${sc.name}）`;
         try{
           const data = await searchWithRetry(prefCode, sc.code, '', checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
-            (attempt, total)=>{ statusMsg.textContent = `${sc.name}の通信が不安定のため再試行中…（${attempt}/${total}回目）`; });
+            (attempt, total)=>{ statusMsg.textContent = `${sc.name}の空室を確認しています…`; });
           const extracted = extractRows(data).map(r => ({...r, areaName: sc.name, smallCodeUsed: sc.code}));
           rows = rows.concat(extracted);
           if(data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) totalHit += data.pagingInfo.recordCount;
@@ -759,7 +759,7 @@ async function runSearch(){
       apiCount = totalHit;
     } else {
       const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
-        (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
+        (attempt, total)=>{ statusMsg.textContent = `空室を確認しています…`; });
       const areaName = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
       rows = extractRows(data).map(r => ({...r, areaName, smallCodeUsed: smallCode}));
       beforeFilterCount = rows.length;
