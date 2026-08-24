@@ -507,6 +507,11 @@ async function geocodeLocation(){
 }
 
 document.getElementById('geocodeBtn').addEventListener('click', geocodeLocation);
+document.getElementById('freeLocationQuery').addEventListener('input', ()=>{
+  window.__freeLocation = null;
+  document.getElementById('geocodeResult').textContent = '（内容を変更したので、もう一度「位置を確認」を押してください）';
+  document.getElementById('geocodeResult').style.color = 'var(--ink-soft)';
+});
 
 function updateStationSelect(){
   const prefCode = document.getElementById('prefSelect').value;
@@ -614,6 +619,10 @@ function onAreaSmallChange(){
 }
 
 document.getElementById('prefSelect').addEventListener('change', async ()=>{
+  window.__freeLocation = null;
+  document.getElementById('freeLocationQuery').value = '';
+  document.getElementById('geocodeResult').textContent = '';
+
   if(window.__areaTree){
     populateSmallSelect(window.__areaTree);
   } else {
@@ -654,10 +663,10 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
     page: 1,
     sort: '+roomCharge'
   };
+  params.largeClassCode = 'japan'; // ドキュメント上、これは常に必須の可能性が高いため両モード共通で送る
   if(useFreeLocation){
-    // 自由入力の場所を使う時は、地区コードを送らず緯度経度だけで検索する
+    // 自由入力の場所を使う時は、都道府県・地区コードだけ送らず緯度経度で絞り込む
   } else {
-    params.largeClassCode = 'japan';
     params.middleClassCode = prefCode;
     params.smallClassCode = smallCode;
     if(detailCode) params.detailClassCode = detailCode;
