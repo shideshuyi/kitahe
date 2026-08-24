@@ -273,12 +273,8 @@
         <input type="date" id="checkout">
       </div>
       <div>
-        <label>価格帯（下限・円）※高級旅館向けに20,000円を初期値にしています</label>
-        <input type="text" id="minCharge" value="20000" placeholder="例：20000">
-      </div>
-      <div>
-        <label>価格帯（上限・円）</label>
-        <input type="text" id="maxCharge" placeholder="例：50000">
+        <label>価格帯（上限・円・任意）</label>
+        <input type="text" id="maxCharge" placeholder="例：100000">
       </div>
       <div>
         <label>評価（口コミ）で絞り込む</label>
@@ -305,22 +301,20 @@
       <span class="status" id="statusMsg">アプリIDとアクセスキーを入力してください</span>
     </div>
     <div class="legend">
-      価格の安い順に、最大30件まで表示します。<br>
+      代表価格が安い宿順に、最大30件まで表示します（同じ宿の複数プランは1件にまとめ、条件を満たす中で一番安いプランの金額を代表として表示しています）。<br>
       施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。<br>
       「駅から徒歩」は、施設のアクセス文中にある「駅」の近くに書かれた「徒歩◯分」を自動で抜き出した参考値です。書き方によっては抜き出せない宿もあり、その場合は「―」と表示されます（数字自体は施設側の記載をそのまま転記していますが、正確な意味の徒歩分数かは保証できないため「参考」としています）。マウスを乗せるとアクセス文の全文を確認できます。
     </div>
   </section>
 
   <section class="panel" id="resultsPanel" style="display:none;">
-    <h2>検索結果（1泊あたりの実勢価格・安い順）</h2>
+    <h2>検索結果（この条件で泊まれる宿・安い順）</h2>
     <div style="overflow-x:auto;">
       <table>
         <thead>
           <tr>
             <th>施設</th>
-            <th>プラン／部屋</th>
-            <th class="num">料金</th>
-            <th>食事</th>
+            <th class="num">代表価格</th>
             <th class="num">駅から徒歩</th>
             <th class="num">評価</th>
           </tr>
@@ -743,6 +737,17 @@ function extractStationWalk(accessText){
   return { station: stationName, minutes: walkMatch[1] };
 }
 
+function dedupeByHotel(rows){
+  const map = new Map();
+  rows.forEach(r=>{
+    const existing = map.get(r.hotelNo);
+    if(!existing || r.total < existing.total){
+      map.set(r.hotelNo, r);
+    }
+  });
+  return Array.from(map.values()).sort((a,b)=>a.total-b.total);
+}
+
 function mealText(room){
   if(!room) return '不明';
   const b = room.withBreakfastFlag===1 ? '朝食○' : '朝食×';
@@ -806,7 +811,8 @@ async function runSearch(){
   const checkin = document.getElementById('checkin').value;
   const checkout = document.getElementById('checkout').value;
   const onsenOnly = true; // このページは常に温泉宿限定
-  const minCharge = document.getElementById('minCharge').value.trim();
+  const LUXURY_MIN_CHARGE = '50000'; // 「高級」の基準はサイト側で固定・非公開（ユーザーには見せない・選ばせない）
+  const minCharge = LUXURY_MIN_CHARGE;
   const maxCharge = document.getElementById('maxCharge').value.trim();
   const minReview = parseFloat(document.getElementById('minReview').value) || 0;
   const minReviewCount = parseInt(document.getElementById('minReviewCount').value) || 0;
@@ -847,9 +853,17 @@ async function runSearch(){
       (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
     let rows = extractRows(data);
     const beforeFilterCount = rows.length;
+    // APIのminCharge/maxChargeは施設単位の目安に対してかかっている可能性があり、
+    // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
+    const minChargeNum = parseInt(minCharge, 10);
+    const maxChargeNum = parseInt(maxCharge, 10);
+    if(!isNaN(minChargeNum)){ rows = rows.filter(r => r.total >= minChargeNum); }
+    if(!isNaN(maxChargeNum)){ rows = rows.filter(r => r.total <= maxChargeNum); }
     if(minReview > 0 || minReviewCount > 0){
       rows = rows.filter(r => (r.reviewAverage||0) >= minReview && (r.reviewCount||0) >= minReviewCount);
     }
+    // 施設単位の視点にするため、同じ宿は1件にまとめ、条件を満たす中で一番安いプランを代表とする
+    rows = dedupeByHotel(rows);
     const apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
     const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
 
@@ -858,7 +872,7 @@ async function runSearch(){
       ? window.__freeLocation.displayName.split('、')[0].split(',')[0]
       : (narrowStationIdx !== '' ? ((STATION_COORDS[prefCode]&&STATION_COORDS[prefCode][smallCode])||[])[parseInt(narrowStationIdx,10)]?.name : null);
     const narrowNote = stationName ? `［${stationName}中心 半径${narrowKm}kmに絞り込み］` : '';
-    statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得=${beforeFilterCount}件 ／ 評価絞込後=${rows.length}件（${checkin}〜${checkout}）${narrowNote}`;
+    statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件（プラン単位） ／ 条件を満たす宿=${rows.length}件（${checkin}〜${checkout}）${narrowNote}`;
     if(beforeFilterCount > 0 && rows.length === 0){
       statusMsg.textContent += ' ※評価・件数の基準で全て除外されました。基準を緩めてもう一度お試しください。';
     }
@@ -896,9 +910,7 @@ function renderRows(rows, areaLabel){
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="hname"><a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
-      <td>${r.roomName || ''}<div class="plan">${r.planName || ''}</div></td>
-      <td class="num">${yen(r.total)}</td>
-      <td><span class="badge">${r.meal}</span></td>
+      <td class="num">${yen(r.total)}〜</td>
       <td class="num" title="${r.access ? r.access.replace(/"/g,'') : ''}">${r.stationWalk ? r.stationWalk.station+' 徒歩'+r.stationWalk.minutes+'分（参考）' : '—'}</td>
       <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
     `;
