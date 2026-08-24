@@ -712,11 +712,11 @@ function hasKakenagashi(roomName, planName){
 
 function extractView(roomName, planName){
   const text = `${roomName||''} ${planName||''}`;
-  const ichibouMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z0-9]{1,8}を一望)/);
+  const ichibouMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z]{1,8}を一望)/);
   if(ichibouMatch) return ichibouMatch[1];
-  const nozomuMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z0-9]{1,8}を望む)/);
+  const nozomuMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z]{1,8}を望む)/);
   if(nozomuMatch) return nozomuMatch[1];
-  const viewMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z0-9]{1,10}ビュー)/);
+  const viewMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z]{1,10}ビュー)/);
   if(viewMatch) return viewMatch[1];
   const zekkeiMatch = text.match(/(絶景[一-龥ぁ-んァ-ヶー]{0,4})/);
   if(zekkeiMatch) return zekkeiMatch[1];
