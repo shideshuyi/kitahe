@@ -346,10 +346,8 @@ document.getElementById('checkin').addEventListener('change', ()=>{
   const inDate = new Date(checkinEl.value);
   const minOut = new Date(inDate); minOut.setDate(minOut.getDate()+1);
   checkoutEl.min = fmt(minOut);
-  const outDate = new Date(checkoutEl.value);
-  if(!checkoutEl.value || isNaN(outDate.getTime()) || outDate <= inDate){
-    checkoutEl.value = fmt(minOut);
-  }
+  // チェックインを変更したら、古い値を引きずらないよう常にチェックアウトを翌日にリセットする
+  checkoutEl.value = fmt(minOut);
 });
 
 (async()=>{
@@ -374,7 +372,7 @@ function jsonp(url){
     window[cbName] = (data)=>{ done = true; resolve(data); cleanup(); };
     function cleanup(){ delete window[cbName]; script.remove(); }
     script.onerror = ()=>{
-      if(!done){ reject(new Error('通信に失敗しました（アプリIDや通信環境を確認してください）')); cleanup(); }
+      if(!done){ reject(new Error('通信状態が不安定です。しばらくしてからもう一度お試しください')); cleanup(); }
     };
     setTimeout(()=>{ if(!done){ reject(new Error('タイムアウトしました')); cleanup(); } }, 15000);
     script.src = url + '&callback=' + cbName;
