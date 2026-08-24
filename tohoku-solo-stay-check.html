@@ -637,6 +637,20 @@ document.getElementById('prefSelect').addEventListener('change', async ()=>{
 });
 document.getElementById('areaSmallSelect').addEventListener('change', onAreaSmallChange);
 document.getElementById('loadAreaBtn').addEventListener('click', loadAreaTree);
+document.getElementById('accessKey').addEventListener('blur', async ()=>{
+  const appId = document.getElementById('appId').value.trim();
+  const accessKey = document.getElementById('accessKey').value.trim();
+  if(appId && accessKey && !window.__areaTree){
+    await loadAreaTree();
+  }
+});
+document.getElementById('appId').addEventListener('blur', async ()=>{
+  const appId = document.getElementById('appId').value.trim();
+  const accessKey = document.getElementById('accessKey').value.trim();
+  if(appId && accessKey && !window.__areaTree){
+    await loadAreaTree();
+  }
+});
 updateStationSelect();
 
 // ---- 空室検索API（VacantHotelSearch）まわり ----
