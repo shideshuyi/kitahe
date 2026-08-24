@@ -214,7 +214,7 @@
           <option value="miyagi" selected>宮城県</option>
           <option value="akita">秋田県</option>
           <option value="yamagata">山形県</option>
-          <option value="fukushima">福島県</option>
+          <option value="hukushima">福島県</option>
         </select>
       </div>
       <div>
@@ -273,10 +273,6 @@
         <input type="date" id="checkout">
       </div>
       <div>
-        <label>価格帯（上限・円・任意）</label>
-        <input type="text" id="maxCharge" placeholder="例：100000">
-      </div>
-      <div>
         <label>評価（口コミ）で絞り込む</label>
         <select id="minReview">
           <option value="">指定なし</option>
@@ -329,7 +325,7 @@
 </div>
 
 <script>
-const TOHOKU_PREFS = ['aomori','iwate','miyagi','akita','yamagata','fukushima'];
+const TOHOKU_PREFS = ['aomori','iwate','miyagi','akita','yamagata','hukushima']; // 福島は実際のAPIコードが"hukushima"（古いローマ字表記）
 
 function fmt(d){ return d.toISOString().slice(0,10); }
 const t1 = new Date(); t1.setDate(t1.getDate()+1);
@@ -460,8 +456,8 @@ const STATION_COORDS = {
   yamagata: {
     yamagata: [{name:'山形駅', lat:38.240436, lng:140.363069}],
   },
-  fukushima: {
-    fukushima:[{name:'福島駅', lat:37.754114, lng:140.474425}],
+  hukushima: {
+    hukushima:[{name:'福島駅', lat:37.754114, lng:140.474425}],
   },
 };
 
@@ -532,6 +528,10 @@ function populateSmallSelect(tree){
     onAreaSmallChange();
     return;
   }
+  const allOpt = document.createElement('option');
+  allOpt.value = '';
+  allOpt.textContent = '指定なし（県全体を検索）';
+  smallSel.appendChild(allOpt);
   entry.smalls.forEach(s=>{
     const opt = document.createElement('option');
     opt.value = s.code;
@@ -813,7 +813,7 @@ async function runSearch(){
   const onsenOnly = true; // このページは常に温泉宿限定
   const LUXURY_MIN_CHARGE = '50000'; // 「高級」の基準はサイト側で固定・非公開（ユーザーには見せない・選ばせない）
   const minCharge = LUXURY_MIN_CHARGE;
-  const maxCharge = document.getElementById('maxCharge').value.trim();
+  const maxCharge = ''; // 価格帯上限はUIから削除（非公開）
   const minReview = parseFloat(document.getElementById('minReview').value) || 0;
   const minReviewCount = parseInt(document.getElementById('minReviewCount').value) || 0;
   const narrowStationIdx = document.getElementById('narrowStation').value;
@@ -833,7 +833,7 @@ async function runSearch(){
 
   if(!appId){ statusMsg.textContent = 'アプリIDを入力してください'; statusMsg.className='status err'; return; }
   if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください'; statusMsg.className='status err'; return; }
-  if(!smallCode && !window.__freeLocation){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して地区を選ぶか、自由入力で場所を確認してください'; statusMsg.className='status err'; return; }
+  if(!window.__areaTree && !window.__freeLocation){ statusMsg.textContent = '先に「地区一覧を読み込む」を押すか、自由入力で場所を確認してください'; statusMsg.className='status err'; return; }
   if(!checkin || !checkout){ statusMsg.textContent = '日付を指定してください'; statusMsg.className='status err'; return; }
   if(new Date(checkout) <= new Date(checkin)){
     statusMsg.textContent = `チェックアウト日（${checkout}）がチェックイン日（${checkin}）以前になっています。チェックアウトをチェックインより後の日付にしてください`;
@@ -848,11 +848,39 @@ async function runSearch(){
   try{ await window.storage.set('rakuten-app-id', appId, false); }catch(e){}
 
   try{
-    const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
-      narrowLat, narrowLng, narrowKm, !!window.__freeLocation,
-      (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
-    let rows = extractRows(data);
-    const beforeFilterCount = rows.length;
+    let rows = [];
+    let beforeFilterCount = 0;
+    let apiCount = '不明';
+
+    if(!smallCode && !window.__freeLocation){
+      // 「県全体」：その県の全地区を順番に検索して合算する
+      const smallsToSearch = (window.__areaTree[prefCode] && window.__areaTree[prefCode].smalls) || [];
+      let totalHit = 0;
+      for(let i=0; i<smallsToSearch.length; i++){
+        const sc = smallsToSearch[i];
+        statusMsg.textContent = `県全体を検索中…（${i+1}/${smallsToSearch.length}：${sc.name}）`;
+        try{
+          const data = await searchWithRetry(prefCode, sc.code, '', checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
+            narrowLat, narrowLng, narrowKm, false,
+            (attempt, total)=>{ statusMsg.textContent = `${sc.name}の通信が不安定のため再試行中…（${attempt}/${total}回目）`; });
+          rows = rows.concat(extractRows(data));
+          if(data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) totalHit += data.pagingInfo.recordCount;
+        }catch(e){
+          console.warn(`${sc.name}の検索に失敗、スキップします:`, e.message);
+        }
+        await new Promise(r=>setTimeout(r, 400)); // 連続アクセスを避けるための小休止
+      }
+      beforeFilterCount = rows.length;
+      apiCount = totalHit;
+    } else {
+      const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
+        narrowLat, narrowLng, narrowKm, !!window.__freeLocation,
+        (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
+      rows = extractRows(data);
+      beforeFilterCount = rows.length;
+      apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
+    }
+
     // APIのminCharge/maxChargeは施設単位の目安に対してかかっている可能性があり、
     // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
     const minChargeNum = parseInt(minCharge, 10);
@@ -864,8 +892,9 @@ async function runSearch(){
     }
     // 施設単位の視点にするため、同じ宿は1件にまとめ、条件を満たす中で一番安いプランを代表とする
     rows = dedupeByHotel(rows);
-    const apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
-    const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
+    const areaLabel = smallCode
+      ? (document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode)
+      : `${document.getElementById('prefSelect').selectedOptions[0]?.textContent}全体`;
 
     renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, smallCode, checkin, checkout)})), areaLabel);
     const stationName = window.__freeLocation

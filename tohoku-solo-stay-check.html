@@ -214,7 +214,7 @@
           <option value="miyagi" selected>宮城県</option>
           <option value="akita">秋田県</option>
           <option value="yamagata">山形県</option>
-          <option value="fukushima">福島県</option>
+          <option value="hukushima">福島県</option>
         </select>
       </div>
       <div>
@@ -334,7 +334,7 @@
 </div>
 
 <script>
-const TOHOKU_PREFS = ['aomori','iwate','miyagi','akita','yamagata','fukushima'];
+const TOHOKU_PREFS = ['aomori','iwate','miyagi','akita','yamagata','hukushima']; // 福島は実際のAPIコードが"hukushima"（古いローマ字表記）
 
 function fmt(d){ return d.toISOString().slice(0,10); }
 const t1 = new Date(); t1.setDate(t1.getDate()+1);
@@ -465,8 +465,8 @@ const STATION_COORDS = {
   yamagata: {
     yamagata: [{name:'山形駅', lat:38.240436, lng:140.363069}],
   },
-  fukushima: {
-    fukushima:[{name:'福島駅', lat:37.754114, lng:140.474425}],
+  hukushima: {
+    hukushima:[{name:'福島駅', lat:37.754114, lng:140.474425}],
   },
 };
 
@@ -848,6 +848,12 @@ async function runSearch(){
       (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
     let rows = extractRows(data);
     const beforeFilterCount = rows.length;
+    // APIのminCharge/maxChargeは施設単位の目安に対してかかっている可能性があり、
+    // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
+    const minChargeNum = parseInt(minCharge, 10);
+    const maxChargeNum = parseInt(maxCharge, 10);
+    if(!isNaN(minChargeNum)){ rows = rows.filter(r => r.total >= minChargeNum); }
+    if(!isNaN(maxChargeNum)){ rows = rows.filter(r => r.total <= maxChargeNum); }
     if(minReview > 0 || minReviewCount > 0){
       rows = rows.filter(r => (r.reviewAverage||0) >= minReview && (r.reviewCount||0) >= minReviewCount);
     }
