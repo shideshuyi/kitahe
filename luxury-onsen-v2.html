@@ -723,8 +723,8 @@ function extractView(roomName, planName){
   if(nozomuMatch) return nozomuMatch[1];
   const viewMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z]{1,10}ビュー)/);
   if(viewMatch) return viewMatch[1];
-  const zekkeiMatch = text.match(/(絶景[一-龥ぁ-んァ-ヶー]{0,4})/);
-  if(zekkeiMatch) return zekkeiMatch[1];
+  const zekkeiMatch = text.match(/(絶景[一-龥ぁ-んァ-ヶー]{0,8})/);
+  if(zekkeiMatch) return zekkeiMatch[1].replace(/(プラン|客室|の宿|お部屋)$/,'');
   return null;
 }
 
@@ -893,13 +893,31 @@ async function runSearch(){
     }
 
     // 安いプランを併せ持つ宿は、価格帯フィルタで見えなくなる前にここで除外する
+    const nameByHotelNo = new Map(rows.map(r=>[r.hotelNo, r.hotelName]));
+    const beforeBudgetHotelNos = new Set(rows.map(r=>r.hotelNo));
     rows = excludeHotelsWithBudgetPlans(rows);
+    const afterBudgetHotelNos = new Set(rows.map(r=>r.hotelNo));
+    const excludedByBudget = [...beforeBudgetHotelNos]
+      .filter(no => !afterBudgetHotelNos.has(no))
+      .map(no => nameByHotelNo.get(no));
+
     // APIのminChargeは施設単位の目安に対してかかっている可能性があり、
     // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
     const minChargeNum = parseInt(minCharge, 10);
     if(!isNaN(minChargeNum)){ rows = rows.filter(r => r.total >= minChargeNum); }
+
     // 誰もが知っているビジネスホテルチェーンは、価格帯を満たしていても除外する
+    const beforeChainExclude = rows.map(r=>({no:r.hotelNo, name:r.hotelName}));
     rows = rows.filter(r => !isBusinessChain(r.hotelName));
+    const excludedByChain = beforeChainExclude.filter(h => !rows.some(r=>r.hotelNo===h.no));
+
+    if(excludedByBudget.length > 0 || excludedByChain.length > 0){
+      console.log('【除外された宿の一覧・検証用】', {
+        安いプランを併せ持つため除外: excludedByBudget,
+        ビジネスホテルチェーン名として除外: excludedByChain.map(h=>h.name),
+      });
+    }
+
     if(minReview > 0 || minReviewCount > 0){
       rows = rows.filter(r => (r.reviewAverage||0) >= minReview && (r.reviewCount||0) >= minReviewCount);
     }
