@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>東北ひとりで泊まれる高級温泉旅館</title>
+<style>
+  :root{
+    --paper: #e9e2d0;
+    --paper-deep: #ded4bc;
+    --ink: #2b2622;
+    --ink-soft: #5c5346;
+    --indigo: #253c56;
+    --indigo-deep: #16283c;
+    --gold: #9c8352;
+    --line: #c9bd9f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 38px, #00000006 38px 39px),
+      var(--paper);
+    color:var(--ink);
+    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:900px;margin:0 auto;}
+
+  header.cover{
+    border:1px solid var(--gold);
+    padding:22px 24px;
+    margin-bottom:22px;
+    position:relative;
+    background:var(--paper-deep);
+  }
+  header.cover::before, header.cover::after{
+    content:"";
+    position:absolute; inset:5px;
+    border:1px solid var(--gold);
+    pointer-events:none;
+  }
+  h1{
+    margin:0 0 6px;
+    font-size:1.5rem;
+    letter-spacing:.08em;
+    color:var(--indigo-deep);
+    font-weight:600;
+  }
+  h1 small{
+    display:block;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.72rem;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+    margin-top:4px;
+    font-weight:400;
+  }
+  .purpose{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.85rem;
+    line-height:1.8;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+
+  section.panel{
+    border:1px solid var(--line);
+    background:#f2ecdd;
+    padding:18px 20px;
+    margin-bottom:18px;
+  }
+  .panel h2{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.8rem;
+    letter-spacing:.1em;
+    color:var(--indigo);
+    margin:0 0 14px;
+    border-left:4px solid var(--indigo);
+    padding-left:8px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px 18px;
+  }
+  label{
+    display:block;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.72rem;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  input[type=text],input[type=date],select{
+    width:100%;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.85rem;
+    padding:7px 9px;
+    border:1px solid var(--line);
+    background:#fbf8ef;
+    color:var(--ink);
+  }
+  .checkrow{
+    display:flex; align-items:center; gap:8px;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.78rem; color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .actions{margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  button{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.85rem;
+    padding:9px 22px;
+    background:var(--indigo);
+    color:#f2ecdd;
+    border:none;
+    letter-spacing:.06em;
+    cursor:pointer;
+  }
+  button:hover{background:var(--indigo-deep);}
+  button:disabled{background:#9a9384; cursor:default;}
+  .status{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.78rem; color:var(--ink-soft);
+  }
+  .status.err{color:#b8451f;}
+
+  .legend{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.72rem;
+    color:var(--ink-soft);
+    line-height:1.9;
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+  }
+  .legend b{color:var(--indigo);}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:.8rem;
+    background:#f6f1e4;
+  }
+  thead th{
+    text-align:left;
+    font-size:.68rem;
+    letter-spacing:.05em;
+    color:#f2ecdd;
+    background:var(--indigo);
+    padding:9px 10px;
+    position:sticky; top:0;
+  }
+  tbody td{
+    padding:10px 10px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tbody tr:hover{background:#efe6cf;}
+  .hname{font-weight:600; color:var(--ink);}
+  .hname a{color:inherit; text-decoration:none; border-bottom:1px dotted var(--gold);}
+  .plan{font-size:.74rem; color:var(--ink-soft); margin-top:3px;}
+  .num{
+    font-family:"SFMono-Regular",Consolas,monospace;
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .badge{
+    display:inline-block;
+    font-size:.65rem;
+    padding:1px 6px;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .empty{
+    padding:30px; text-align:center;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    color:var(--ink-soft); font-size:.82rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cover">
+    <h1>東北ひとりで泊まれる高級温泉旅館
+      <small>楽天トラベル空室検索API・温泉宿×大人1名固定×価格帯で絞り込んだ「実際の支払額」だけを表示する</small>
+    </h1>
+    <div class="purpose">
+      大人1名・指定日程で楽天トラベルに直接問い合わせ、温泉宿かつ指定した価格帯以上のプランだけを一覧にします。<br>
+      ※正直な注記：楽天のAPIには「旅館だけに絞る」という機能が存在しません。ここでの絞り込みは「温泉宿であること」と「価格帯」だけで、施設が正式な旅館かホテルかまでは判別できません。高価格帯・温泉付きという条件で、実質的に旅館寄りの施設が多く出てくることを狙っていますが、100%旅館だけとは限りません。
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2>検索条件</h2>
+    <div class="grid">
+      <div>
+        <label>楽天ウェブサービス アプリID <span style="color:#b8451f">*必須</span></label>
+        <input type="text" id="appId" placeholder="webservice.rakuten.co.jp で無料取得">
+      </div>
+      <div>
+        <label>アクセスキー <span style="color:#b8451f">*必須</span></label>
+        <input type="text" id="accessKey" placeholder="アプリID発行時に一緒に表示されたaccessKey">
+      </div>
+      <div>
+        <label>都道府県</label>
+        <select id="prefSelect">
+          <option value="aomori">青森県</option>
+          <option value="iwate">岩手県</option>
+          <option value="miyagi" selected>宮城県</option>
+          <option value="akita">秋田県</option>
+          <option value="yamagata">山形県</option>
+          <option value="fukushima">福島県</option>
+        </select>
+      </div>
+      <div>
+        <label>地区（読み込み後に選択）</label>
+        <div style="display:flex; gap:6px;">
+          <select id="areaSmallSelect" style="flex:1;"><option value="">－右のボタンで読み込んでください－</option></select>
+          <button type="button" id="loadAreaBtn" style="background:var(--gold); padding:7px 12px; font-size:.75rem; white-space:nowrap;">読み込む</button>
+        </div>
+      </div>
+      <div id="detailSelectWrap" style="display:none;">
+        <label>さらに細かいエリア（あれば選択）</label>
+        <select id="areaDetailSelect"><option value="">指定なし（地区全体）</option></select>
+      </div>
+    <div class="checkrow" style="margin-top:8px; align-items:flex-start; flex-direction:column;">
+      <label style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-bottom:4px;">
+        駅を中心にさらに絞り込む（任意。座標は内部で自動設定されます）
+      </label>
+      <div class="grid" style="width:100%;">
+        <div>
+          <label>駅を選ぶ</label>
+          <select id="narrowStation">
+            <option value="">絞り込まない（地区全体）</option>
+          </select>
+        </div>
+        <div>
+          <label>半径km</label>
+          <select id="narrowKm">
+            <option value="1">1km</option>
+            <option value="2">2km</option>
+            <option value="3" selected>3km（API上限）</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="checkrow" style="margin-top:8px; align-items:flex-start; flex-direction:column; border-top:1px dashed var(--line); padding-top:10px;">
+      <label style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-bottom:4px;">
+        実験：自由入力で場所を検索（駅を登録していない地名でも使えます・任意）
+      </label>
+      <div class="grid" style="width:100%;">
+        <div style="grid-column: span 2;">
+          <label>場所（駅名・地名など）</label>
+          <input type="text" id="freeLocationQuery" placeholder="例：多賀城駅、遠野、古川駅">
+        </div>
+        <div>
+          <button type="button" id="geocodeBtn" style="background:var(--gold); width:100%;">位置を確認</button>
+        </div>
+      </div>
+      <div id="geocodeResult" style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-top:6px;"></div>
+    </div>
+    <div>
+        <label>チェックイン</label>
+        <input type="date" id="checkin">
+      </div>
+      <div>
+        <label>チェックアウト</label>
+        <input type="date" id="checkout">
+      </div>
+      <div>
+        <label>価格帯（下限・円）※高級旅館向けに20,000円を初期値にしています</label>
+        <input type="text" id="minCharge" value="20000" placeholder="例：20000">
+      </div>
+      <div>
+        <label>価格帯（上限・円）</label>
+        <input type="text" id="maxCharge" placeholder="例：50000">
+      </div>
+      <div>
+        <label>評価（口コミ）で絞り込む</label>
+        <select id="minReview">
+          <option value="">指定なし</option>
+          <option value="3.0">★3.0以上</option>
+          <option value="3.5">★3.5以上</option>
+          <option value="4.0" selected>★4.0以上</option>
+          <option value="4.5">★4.5以上</option>
+        </select>
+      </div>
+      <div>
+        <label>最低レビュー件数（信頼性の担保）</label>
+        <input type="text" id="minReviewCount" value="30" placeholder="例：30">
+      </div>
+    </div>
+    <div class="checkrow">
+      <span style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.78rem; color:var(--ink-soft);">
+        ✓ このページは温泉宿限定で常に検索します（`squeezeCondition=onsen`固定）
+      </span>
+    </div>
+    <div class="actions">
+      <button id="runBtn">検索する</button>
+      <span class="status" id="statusMsg">アプリIDとアクセスキーを入力してください</span>
+    </div>
+    <div class="legend">
+      価格の安い順に、最大30件まで表示します。<br>
+      施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。<br>
+      「駅から徒歩」は、施設のアクセス文中にある「駅」の近くに書かれた「徒歩◯分」を自動で抜き出した参考値です。書き方によっては抜き出せない宿もあり、その場合は「―」と表示されます（数字自体は施設側の記載をそのまま転記していますが、正確な意味の徒歩分数かは保証できないため「参考」としています）。マウスを乗せるとアクセス文の全文を確認できます。
+    </div>
+  </section>
+
+  <section class="panel" id="resultsPanel" style="display:none;">
+    <h2>検索結果（1泊あたりの実勢価格・安い順）</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>施設</th>
+            <th>プラン／部屋</th>
+            <th class="num">料金</th>
+            <th>食事</th>
+            <th class="num">駅から徒歩</th>
+            <th class="num">評価</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="empty" id="emptyMsg">まだ検索していません。条件を入力して「検索する」を押してください。</div>
+
+</div>
+
+<script>
+const TOHOKU_PREFS = ['aomori','iwate','miyagi','akita','yamagata','fukushima'];
+
+function fmt(d){ return d.toISOString().slice(0,10); }
+const t1 = new Date(); t1.setDate(t1.getDate()+1);
+const t2 = new Date(); t2.setDate(t2.getDate()+2);
+document.getElementById('checkin').value = fmt(t1);
+document.getElementById('checkout').value = fmt(t2);
+
+document.getElementById('checkin').addEventListener('change', ()=>{
+  const checkinEl = document.getElementById('checkin');
+  const checkoutEl = document.getElementById('checkout');
+  const inDate = new Date(checkinEl.value);
+  const minOut = new Date(inDate); minOut.setDate(minOut.getDate()+1);
+  checkoutEl.min = fmt(minOut);
+  const outDate = new Date(checkoutEl.value);
+  if(!checkoutEl.value || isNaN(outDate.getTime()) || outDate <= inDate){
+    checkoutEl.value = fmt(minOut);
+  }
+});
+
+(async()=>{
+  try{
+    const r = await window.storage.get('rakuten-app-id', false);
+    if(r && r.value) document.getElementById('appId').value = r.value;
+  }catch(e){}
+  try{
+    const cached = await window.storage.get('rakuten-area-tree', false);
+    if(cached && cached.value){
+      const tree = JSON.parse(cached.value);
+      populateSmallSelect(tree);
+    }
+  }catch(e){ /* キャッシュなし、初回は読み込みボタンで取得 */ }
+})();
+
+function jsonp(url){
+  return new Promise((resolve, reject)=>{
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    let done = false;
+    window[cbName] = (data)=>{ done = true; resolve(data); cleanup(); };
+    function cleanup(){ delete window[cbName]; script.remove(); }
+    script.onerror = ()=>{
+      if(!done){ reject(new Error('通信に失敗しました（アプリIDや通信環境を確認してください）')); cleanup(); }
+    };
+    setTimeout(()=>{ if(!done){ reject(new Error('タイムアウトしました')); cleanup(); } }, 15000);
+    script.src = url + '&callback=' + cbName;
+    document.body.appendChild(script);
+  });
+}
+
+async function apiFetch(url){
+  try{
+    const res = await fetch(url, { method:'GET' });
+    const text = await res.text();
+    let data;
+    try{ data = JSON.parse(text); }
+    catch(parseErr){ throw new Error(`fetchは通ったが応答がJSONではありません（HTTP ${res.status}）`); }
+    if(!res.ok || data.error){
+      throw new Error(`HTTP ${res.status} ${data.error || ''} ${data.error_description || ''}`.trim());
+    }
+    return data;
+  }catch(fetchErr){
+    console.warn('fetch失敗、JSONPにフォールバック:', fetchErr.message);
+  }
+  const data = await jsonp(url);
+  if(data && data.error){
+    throw new Error(`[JSONP] ${data.error}: ${data.error_description || ''}`);
+  }
+  return data;
+}
+
+async function apiFetchWithRetry(url, onRetry){
+  try{
+    return await apiFetch(url);
+  }catch(firstErr){
+    if(onRetry) onRetry();
+    await new Promise(r=>setTimeout(r, 800));
+    try{
+      return await apiFetch(url);
+    }catch(secondErr){
+      throw new Error(secondErr.message + '（自動リトライ後も失敗）');
+    }
+  }
+}
+
+// ---- 地区コードAPI（GetAreaClass）まわり ----
+
+function parseAreaTree(data){
+  // 実際のレスポンス構造：largeClasses[]の各要素に直接middleClassCode等が入るフラット型
+  // （largeClass/middleClass配列でラップされる古い形式ではなかった）
+  const result = {};
+  const largeClasses = (data.areaClasses && data.areaClasses.largeClasses) || [];
+  largeClasses.forEach(lc=>{
+    (lc.middleClasses||[]).forEach(mc=>{
+      const smalls = (mc.smallClasses||[])
+        .map(sc=>({
+          code: sc.smallClassCode,
+          name: sc.smallClassName,
+          details: (sc.detailClasses||[]).map(d=>({code: d.detailClassCode, name: d.detailClassName}))
+        }))
+        .filter(s=>s.code);
+      if(mc.middleClassCode) result[mc.middleClassCode] = { name: mc.middleClassName, smalls };
+    });
+  });
+  return result;
+}
+
+const STATION_COORDS = {
+  // 実際の地区コードAPIで確認済みの smallClassCode に紐づけています
+  aomori: {
+    aomori:   [{name:'青森駅', lat:40.824623, lng:140.742938}],
+    hirosaki: [{name:'弘前駅', lat:40.603135, lng:140.463840}],
+  },
+  iwate: {
+    morioka:  [{name:'盛岡駅', lat:39.700813, lng:141.135288}],
+    kitakami: [{name:'遠野駅', lat:39.332345, lng:141.531194}],
+  },
+  miyagi: {
+    sendai:   [
+      {name:'仙台駅',   lat:38.260559,  lng:140.882194},
+      {name:'多賀城駅', lat:38.291744,  lng:141.006248},
+      {name:'名取駅',   lat:38.173191,  lng:140.882881},
+    ],
+  },
+  akita: {
+    akita:    [{name:'秋田駅', lat:39.717936, lng:140.102725}],
+  },
+  // ↓ 山形・福島は実際のsmallClassCode名がまだ未確認のため、暫定です（要検証）
+  yamagata: {
+    yamagata: [{name:'山形駅', lat:38.240436, lng:140.363069}],
+  },
+  fukushima: {
+    fukushima:[{name:'福島駅', lat:37.754114, lng:140.474425}],
+  },
+};
+
+// ---- 自由入力の地名検索（Nominatim/OpenStreetMap、無料のジオコーディングサービス）----
+window.__freeLocation = null; // {lat, lng, displayName}
+
+async function geocodeLocation(){
+  const query = document.getElementById('freeLocationQuery').value.trim();
+  const resultEl = document.getElementById('geocodeResult');
+  if(!query){
+    resultEl.textContent = '場所を入力してください';
+    resultEl.style.color = 'var(--vermillion, #b8451f)';
+    return;
+  }
+  resultEl.textContent = '検索中…';
+  resultEl.style.color = 'var(--ink-soft)';
+  window.__freeLocation = null;
+
+  try{
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=jp&accept-language=ja&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if(!data || data.length === 0){
+      resultEl.textContent = `「${query}」が見つかりませんでした。別の書き方（例：地名＋県名）で試してください`;
+      resultEl.style.color = 'var(--vermillion, #b8451f)';
+      return;
+    }
+    const place = data[0];
+    window.__freeLocation = { lat: parseFloat(place.lat), lng: parseFloat(place.lon), displayName: place.display_name };
+    resultEl.textContent = `✓ この場所として検索します: ${place.display_name}（緯度${place.lat} / 経度${place.lon}）`;
+    resultEl.style.color = 'var(--indigo, #253c56)';
+  }catch(err){
+    resultEl.textContent = 'エラー: ' + err.message + '（Nominatimが混雑している可能性があります。少し待って再試行してください）';
+    resultEl.style.color = 'var(--vermillion, #b8451f)';
+  }
+}
+
+document.getElementById('geocodeBtn').addEventListener('click', geocodeLocation);
+
+function updateStationSelect(){
+  const prefCode = document.getElementById('prefSelect').value;
+  const smallCode = document.getElementById('areaSmallSelect').value;
+  const sel = document.getElementById('narrowStation');
+  sel.innerHTML = '<option value="">絞り込まない（地区全体）</option>';
+  const list = (STATION_COORDS[prefCode] && STATION_COORDS[prefCode][smallCode]) || [];
+  list.forEach((st, i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = st.name;
+    sel.appendChild(opt);
+  });
+}
+
+function populateSmallSelect(tree){
+  window.__areaTree = tree;
+  const prefCode = document.getElementById('prefSelect').value;
+  const smallSel = document.getElementById('areaSmallSelect');
+  smallSel.innerHTML = '';
+  const entry = tree[prefCode];
+  if(!entry || !entry.smalls || entry.smalls.length===0){
+    smallSel.innerHTML = '<option value="">この県の地区が見つかりませんでした</option>';
+    onAreaSmallChange();
+    return;
+  }
+  entry.smalls.forEach(s=>{
+    const opt = document.createElement('option');
+    opt.value = s.code;
+    opt.textContent = s.name;
+    smallSel.appendChild(opt);
+  });
+  onAreaSmallChange();
+}
+
+function updateDetailSelect(){
+  const prefCode = document.getElementById('prefSelect').value;
+  const smallCode = document.getElementById('areaSmallSelect').value;
+  const wrap = document.getElementById('detailSelectWrap');
+  const detailSel = document.getElementById('areaDetailSelect');
+  detailSel.innerHTML = '<option value="">指定なし（地区全体）</option>';
+
+  const tree = window.__areaTree;
+  if(!tree || !tree[prefCode]) { wrap.style.display = 'none'; return; }
+  const smallEntry = tree[prefCode].smalls.find(s=>s.code===smallCode);
+  if(!smallEntry || !smallEntry.details || smallEntry.details.length===0){
+    wrap.style.display = 'none';
+    return;
+  }
+  smallEntry.details.forEach(d=>{
+    const opt = document.createElement('option');
+    opt.value = d.code;
+    opt.textContent = d.name;
+    detailSel.appendChild(opt);
+  });
+  wrap.style.display = 'block';
+}
+
+async function loadAreaTree(){
+  const appId = document.getElementById('appId').value.trim();
+  const accessKey = document.getElementById('accessKey').value.trim();
+  const statusMsg = document.getElementById('statusMsg');
+  const loadBtn = document.getElementById('loadAreaBtn');
+
+  if(!appId || !accessKey){
+    statusMsg.className='status err';
+    statusMsg.textContent = '地区一覧の読み込みにも、アプリID・アクセスキーが必要です';
+    return;
+  }
+
+  loadBtn.disabled = true;
+  statusMsg.className='status';
+  statusMsg.textContent = '地区一覧を読み込み中…（全国分なので少し時間がかかります）';
+
+  try{
+    const url = `https://openapi.rakuten.co.jp/engine/api/Travel/GetAreaClass/20140210?applicationId=${encodeURIComponent(appId)}&accessKey=${encodeURIComponent(accessKey)}&format=json&formatVersion=2`;
+    const data = await apiFetchWithRetry(url, ()=>{ statusMsg.textContent = '通信が不安定だったため再試行しています…'; });
+    const tree = parseAreaTree(data);
+
+    const gotAny = TOHOKU_PREFS.some(p=>tree[p] && tree[p].smalls.length>0);
+    console.log('地区コードAPIで実際に取得できた都道府県コード一覧:', Object.keys(tree));
+    console.log('東北6県それぞれの取得状況:', TOHOKU_PREFS.map(p=>({県コード:p, 地区数: tree[p] ? tree[p].smalls.length : 0, 表示名: tree[p] ? tree[p].name : '見つからず'})));
+    if(!gotAny){
+      console.log('地区コードAPI 生データ（調査用・先頭3000文字）:', JSON.stringify(data).slice(0,3000));
+      statusMsg.className='status err';
+      statusMsg.textContent = '東北6県のデータが見つかりませんでした。開発者コンソールに生データを出力したので確認してください。';
+      loadBtn.disabled = false;
+      return;
+    }
+
+    try{ await window.storage.set('rakuten-area-tree', JSON.stringify(tree), false); }catch(e){}
+    populateSmallSelect(tree);
+    statusMsg.textContent = '地区一覧を読み込みました。「地区」欄から選び直してください。';
+  }catch(err){
+    statusMsg.className='status err';
+    statusMsg.textContent = 'エラー: ' + err.message;
+  }finally{
+    loadBtn.disabled = false;
+  }
+}
+
+function onAreaSmallChange(){
+  updateDetailSelect();
+  updateStationSelect();
+}
+
+document.getElementById('prefSelect').addEventListener('change', async ()=>{
+  if(window.__areaTree){
+    populateSmallSelect(window.__areaTree);
+  } else {
+    const appId = document.getElementById('appId').value.trim();
+    const accessKey = document.getElementById('accessKey').value.trim();
+    if(appId && accessKey){
+      await loadAreaTree(); // キャッシュが無ければ自動で読み込みに行く
+    }
+  }
+  updateStationSelect();
+});
+document.getElementById('areaSmallSelect').addEventListener('change', onAreaSmallChange);
+document.getElementById('loadAreaBtn').addEventListener('click', loadAreaTree);
+updateStationSelect();
+
+// ---- 空室検索API（VacantHotelSearch）まわり ----
+
+function buildSearchUrl(params){
+  const base = 'https://openapi.rakuten.co.jp/engine/api/Travel/VacantHotelSearch/20170426?';
+  const qs = Object.entries(params).filter(([k,v])=>v!==undefined && v!==null && v!=='')
+    .map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+  return base + qs;
+}
+
+async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation){
+  const params = {
+    applicationId: appId,
+    accessKey: accessKey,
+    format: 'json',
+    formatVersion: 2,
+    checkinDate: checkin,
+    checkoutDate: checkout,
+    adultNum: 1,
+    roomNum: 1,
+    searchPattern: 1,
+    responseType: 'middle',
+    hits: 30,
+    page: 1,
+    sort: '+roomCharge'
+  };
+  if(useFreeLocation){
+    // 自由入力の場所を使う時は、地区コードを送らず緯度経度だけで検索する
+  } else {
+    params.largeClassCode = 'japan';
+    params.middleClassCode = prefCode;
+    params.smallClassCode = smallCode;
+    if(detailCode) params.detailClassCode = detailCode;
+  }
+  if(onsenOnly) params.squeezeCondition = 'onsen';
+  if(minCharge) params.minCharge = minCharge;
+  if(maxCharge) params.maxCharge = maxCharge;
+  // 実験的機能：地区コードに加えて緯度経度＋半径も同時指定できるか試す
+  if(narrowLat && narrowLng && narrowKm){
+    params.latitude = narrowLat;
+    params.longitude = narrowLng;
+    params.searchRadius = narrowKm;
+    params.datumType = 1;
+  }
+  const url = buildSearchUrl(params);
+  return await apiFetch(url);
+}
+
+async function searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation, onRetry){
+  const delays = [800, 1600, 3000]; // 段階的に間隔を伸ばす（アクセス制限対策）
+  let lastErr;
+  for(let i=0; i<=delays.length; i++){
+    try{
+      return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation);
+    }catch(err){
+      lastErr = err;
+      if(i < delays.length){
+        if(onRetry) onRetry(i+1, delays.length+1);
+        await new Promise(r=>setTimeout(r, delays[i]));
+      }
+    }
+  }
+  throw new Error(lastErr.message + `（${delays.length+1}回試しましたが失敗しました）`);
+}
+
+function buildConditionAwarePlanUrl(hotelNo, prefCode, smallCode, checkinISO, checkoutISO){
+  if(!hotelNo || !checkinISO || !checkoutISO) return null;
+  const c1 = checkinISO.split('-').map(s=>parseInt(s,10));
+  const c2 = checkoutISO.split('-').map(s=>parseInt(s,10));
+  if(c1.length!==3 || c2.length!==3) return null;
+  const [y1, m1, d1] = c1;
+  const [y2, m2, d2] = c2;
+  const params = {
+    f_flg: 'PLAN', f_teikei: '', f_hizuke: '', f_hak: '',
+    f_dai: 'japan', f_chu: prefCode || '', f_shou: smallCode || '',
+    f_sai: '', f_tel: '', f_target_flg: '', f_tscm_flg: '',
+    f_p_no: '', f_custom_code: '', f_search_type: '', f_camp_id: '',
+    f_static: '1', f_rm_equip: '',
+    f_hi1: d1, f_tuki1: m1, f_nen1: y1,
+    f_hi2: d2, f_tuki2: m2, f_nen2: y2,
+    f_heya_su: '1', f_otona_su: '1',
+    f_s1: '0', f_s2: '0', f_y1: '0', f_y2: '0', f_y3: '0', f_y4: '0',
+    f_kin2: '0', f_kin: ''
+  };
+  const qs = Object.entries(params).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+  return `https://hotel.travel.rakuten.co.jp/hotelinfo/plan/${hotelNo}?${qs}`;
+}
+
+function toHalfWidthDigits(s){
+  return (s||'').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+}
+
+function extractStationWalk(accessText){
+  const t = toHalfWidthDigits(accessText);
+  // 括弧は空白に置換してから駅名を探す（隣の駅名同士がくっつくのを防ぐ）
+  const stripped = t.replace(/[「」()（）]/g, ' ');
+  const stationMatch = stripped.match(/([A-Za-z0-9ぁ-んァ-ヴー一-龠]{1,12}駅)/);
+  if(!stationMatch) return null;
+  const stationName = stationMatch[1];
+  const idx = stripped.indexOf(stationMatch[0]);
+  const window = stripped.slice(idx, idx+40);
+  const walkMatch = window.match(/徒歩\D{0,5}?(\d+)\s*分/);
+  if(!walkMatch) return null;
+  return { station: stationName, minutes: walkMatch[1] };
+}
+
+function mealText(room){
+  if(!room) return '不明';
+  const b = room.withBreakfastFlag===1 ? '朝食○' : '朝食×';
+  const d = room.withDinnerFlag===1 ? '夕食○' : '夕食×';
+  return b + ' / ' + d;
+}
+
+function extractRows(data){
+  const rows = [];
+  if(!data || !data.hotels) return rows;
+
+  data.hotels.forEach(hotelEntry=>{
+    const nodes = Array.isArray(hotelEntry) ? hotelEntry : [hotelEntry];
+    let basic=null, roomInfoArr=null;
+    nodes.forEach(node=>{
+      if(node.hotelBasicInfo) basic = node.hotelBasicInfo;
+      if(node.roomInfo) roomInfoArr = node.roomInfo;
+    });
+    if(!basic) return;
+
+    let room=null, daily=null;
+    if(Array.isArray(roomInfoArr)){
+      roomInfoArr.forEach(rn=>{
+        if(rn.roomBasicInfo) room = rn.roomBasicInfo;
+        if(rn.dailyCharge) daily = rn.dailyCharge;
+      });
+    }
+    if(!daily || daily.total===null || daily.total===undefined) return;
+
+    rows.push({
+      hotelNo: basic.hotelNo,
+      hotelName: basic.hotelName,
+      url: basic.hotelInformationUrl,
+      planListUrl: basic.planListUrl,
+      reserveUrl: room ? room.reserveUrl : null,
+      reviewAverage: basic.reviewAverage,
+      reviewCount: basic.reviewCount,
+      access: basic.access,
+      stationWalk: extractStationWalk(basic.access),
+      roomName: room ? room.roomName : '(部屋情報なし)',
+      planName: room ? room.planName : '',
+      meal: mealText(room),
+      total: daily.total,
+      chargeFlag: daily.chargeFlag,
+    });
+  });
+  return rows.sort((a,b)=>a.total-b.total);
+}
+
+function yen(n){
+  if(n===null || n===undefined) return '—';
+  return '¥' + Number(n).toLocaleString('ja-JP');
+}
+
+async function runSearch(){
+  const appId = document.getElementById('appId').value.trim();
+  const accessKey = document.getElementById('accessKey').value.trim();
+  const prefCode = document.getElementById('prefSelect').value;
+  const smallCode = document.getElementById('areaSmallSelect').value;
+  const detailCode = document.getElementById('areaDetailSelect').value;
+  const checkin = document.getElementById('checkin').value;
+  const checkout = document.getElementById('checkout').value;
+  const onsenOnly = true; // このページは常に温泉宿限定
+  const minCharge = document.getElementById('minCharge').value.trim();
+  const maxCharge = document.getElementById('maxCharge').value.trim();
+  const minReview = parseFloat(document.getElementById('minReview').value) || 0;
+  const minReviewCount = parseInt(document.getElementById('minReviewCount').value) || 0;
+  const narrowStationIdx = document.getElementById('narrowStation').value;
+  const narrowKm = document.getElementById('narrowKm').value;
+  let narrowLat = '', narrowLng = '';
+  if(window.__freeLocation){
+    // 自由入力で場所が確認済みなら、それを優先する
+    narrowLat = window.__freeLocation.lat;
+    narrowLng = window.__freeLocation.lng;
+  } else if(narrowStationIdx !== ''){
+    const stationList = (STATION_COORDS[prefCode] && STATION_COORDS[prefCode][smallCode]) || [];
+    const st = stationList[parseInt(narrowStationIdx, 10)];
+    if(st){ narrowLat = st.lat; narrowLng = st.lng; }
+  }
+  const statusMsg = document.getElementById('statusMsg');
+  const runBtn = document.getElementById('runBtn');
+
+  if(!appId){ statusMsg.textContent = 'アプリIDを入力してください'; statusMsg.className='status err'; return; }
+  if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください'; statusMsg.className='status err'; return; }
+  if(!smallCode && !window.__freeLocation){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して地区を選ぶか、自由入力で場所を確認してください'; statusMsg.className='status err'; return; }
+  if(!checkin || !checkout){ statusMsg.textContent = '日付を指定してください'; statusMsg.className='status err'; return; }
+  if(new Date(checkout) <= new Date(checkin)){
+    statusMsg.textContent = `チェックアウト日（${checkout}）がチェックイン日（${checkin}）以前になっています。チェックアウトをチェックインより後の日付にしてください`;
+    statusMsg.className='status err';
+    return;
+  }
+
+  runBtn.disabled = true;
+  statusMsg.className = 'status';
+  statusMsg.textContent = '検索中…';
+
+  try{ await window.storage.set('rakuten-app-id', appId, false); }catch(e){}
+
+  try{
+    const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
+      narrowLat, narrowLng, narrowKm, !!window.__freeLocation,
+      (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
+    let rows = extractRows(data);
+    const beforeFilterCount = rows.length;
+    if(minReview > 0 || minReviewCount > 0){
+      rows = rows.filter(r => (r.reviewAverage||0) >= minReview && (r.reviewCount||0) >= minReviewCount);
+    }
+    const apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
+    const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
+
+    renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, smallCode, checkin, checkout)})), areaLabel);
+    const stationName = window.__freeLocation
+      ? window.__freeLocation.displayName.split('、')[0].split(',')[0]
+      : (narrowStationIdx !== '' ? ((STATION_COORDS[prefCode]&&STATION_COORDS[prefCode][smallCode])||[])[parseInt(narrowStationIdx,10)]?.name : null);
+    const narrowNote = stationName ? `［${stationName}中心 半径${narrowKm}kmに絞り込み］` : '';
+    statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得=${beforeFilterCount}件 ／ 評価絞込後=${rows.length}件（${checkin}〜${checkout}）${narrowNote}`;
+    if(beforeFilterCount > 0 && rows.length === 0){
+      statusMsg.textContent += ' ※評価・件数の基準で全て除外されました。基準を緩めてもう一度お試しください。';
+    }
+  }catch(err){
+    statusMsg.className = 'status err';
+    statusMsg.textContent = 'エラー: ' + err.message;
+  }finally{
+    // 連打による短時間集中アクセスを防ぐため、1.5秒はボタンを無効化する
+    setTimeout(()=>{ runBtn.disabled = false; }, 1500);
+  }
+}
+
+function renderRows(rows, areaLabel){
+  const panel = document.getElementById('resultsPanel');
+  const empty = document.getElementById('emptyMsg');
+  const tbody = document.getElementById('resultsBody');
+  tbody.innerHTML = '';
+
+  if(rows.length === 0){
+    panel.style.display='none';
+    empty.style.display='block';
+    empty.textContent = areaLabel + ' で、指定条件・大人1名では該当する温泉宿が見つかりませんでした。価格帯の下限を下げるか、評価の基準を緩めて試してください。';
+    return;
+  }
+  empty.style.display='none';
+  panel.style.display='block';
+
+  const failedWalks = rows.filter(r=>!r.stationWalk && r.access).slice(0,5);
+  if(failedWalks.length > 0){
+    console.log('駅徒歩分数を抽出できなかった宿のアクセス文（調査用・最大5件）:',
+      failedWalks.map(r=>({施設名:r.hotelName, アクセス文:r.access})));
+  }
+
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="hname"><a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
+      <td>${r.roomName || ''}<div class="plan">${r.planName || ''}</div></td>
+      <td class="num">${yen(r.total)}</td>
+      <td><span class="badge">${r.meal}</span></td>
+      <td class="num" title="${r.access ? r.access.replace(/"/g,'') : ''}">${r.stationWalk ? r.stationWalk.station+' 徒歩'+r.stationWalk.minutes+'分（参考）' : '—'}</td>
+      <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('runBtn').addEventListener('click', runSearch);
+</script>
+</body>
+</html>
