@@ -604,7 +604,7 @@ async function loadAreaTree(){
 
     try{ await window.storage.set('rakuten-area-tree', JSON.stringify(tree), false); }catch(e){}
     populateSmallSelect(tree);
-    statusMsg.textContent = '地区一覧を読み込みました。「地区」欄から選び直してください。';
+    statusMsg.textContent = '地区一覧を読み込みました。「地区」欄で選んでから検索してください。';
   }catch(err){
     statusMsg.className='status err';
     statusMsg.textContent = 'エラー: ' + err.message;
