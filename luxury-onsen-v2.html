@@ -156,6 +156,7 @@
     font-size:.86rem;
     background:transparent;
   }
+  table.single-area .col-area{ display:none; }
   thead th{
     text-align:left;
     font-size:.68rem;
@@ -301,7 +302,7 @@
       <summary>この検索について</summary>
       <div class="legend" style="border-top:none; margin-top:10px; padding-top:0;">
         施設名のリンクは、検索条件が反映された安全なプラン一覧ページを開きます（決済画面には進みません）。<br>
-        「特徴」は、プラン名・部屋名に記載がある場合のみタグを表示します（客室露天風呂・離れ・個室食・源泉かけ流し）。表示が無くても「無い」と確定した訳ではなく、確認できなかったという意味です。<br>
+        「特徴」は、プラン名・部屋名に記載がある場合のみタグを表示します（客室露天風呂・離れ・個室食・源泉かけ流し・オーシャンビュー等の景観表現）。表示が無くても「無い」と確定した訳ではなく、確認できなかったという意味です。<br>
         ドーミーイン・東横イン・スーパーホテル等、主要なビジネスホテルチェーンは、価格帯を満たしていても一覧から除外しています。<br>
         また、同じ宿の中に2万円未満のプランが1つでもある場合、他のプランが高額でも、その宿ごと除外しています（チェーン名を知らない業態にも対応するためです）。
       </div>
@@ -311,11 +312,11 @@
   <section class="panel" id="resultsPanel" style="display:none;">
     <h2>検索結果（この条件で泊まれる宿）</h2>
     <div style="overflow-x:auto;">
-      <table>
+      <table id="resultsTable">
         <thead>
           <tr>
             <th>施設</th>
-            <th>エリア</th>
+            <th class="col-area">エリア</th>
             <th class="num">価格</th>
             <th>特徴</th>
             <th class="num">評価</th>
@@ -709,6 +710,19 @@ function hasKakenagashi(roomName, planName){
   return /源泉かけ流し|源泉掛け流し|かけ流し|掛け流し/.test(text);
 }
 
+function extractView(roomName, planName){
+  const text = `${roomName||''} ${planName||''}`;
+  const ichibouMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z0-9]{1,8}を一望)/);
+  if(ichibouMatch) return ichibouMatch[1];
+  const nozomuMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z0-9]{1,8}を望む)/);
+  if(nozomuMatch) return nozomuMatch[1];
+  const viewMatch = text.match(/([一-龥ぁ-んァ-ヶーA-Za-z0-9]{1,10}ビュー)/);
+  if(viewMatch) return viewMatch[1];
+  const zekkeiMatch = text.match(/(絶景[一-龥ぁ-んァ-ヶー]{0,4})/);
+  if(zekkeiMatch) return zekkeiMatch[1];
+  return null;
+}
+
 function dedupeByHotel(rows){
   const map = new Map();
   rows.forEach(r=>{
@@ -717,6 +731,7 @@ function dedupeByHotel(rows){
       hanare: hasHanare(r.roomName, r.planName),
       koshitsuShoku: hasKoshitsuShoku(r.roomName, r.planName),
       kakenagashi: hasKakenagashi(r.roomName, r.planName),
+      view: extractView(r.roomName, r.planName),
     };
     const existing = map.get(r.hotelNo);
     if(!existing){
@@ -727,6 +742,7 @@ function dedupeByHotel(rows){
         hanare: existing.features.hanare || flags.hanare,
         koshitsuShoku: existing.features.koshitsuShoku || flags.koshitsuShoku,
         kakenagashi: existing.features.kakenagashi || flags.kakenagashi,
+        view: existing.features.view || flags.view,
       };
       if(r.total < existing.total){
         map.set(r.hotelNo, {...r, features: mergedFlags});
@@ -887,7 +903,7 @@ async function runSearch(){
       ? (document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode)
       : `${document.getElementById('prefSelect').selectedOptions[0]?.textContent}全体`;
 
-    renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, r.smallCodeUsed, checkin, checkout)})), areaLabel);
+    renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, r.smallCodeUsed, checkin, checkout)})), areaLabel, !!smallCode);
     statusMsg.className = 'status';
     statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件（プラン単位） ／ 条件を満たす宿=${rows.length}件（${checkin}〜${checkout}）`;
     if(beforeFilterCount > 0 && rows.length === 0){
@@ -902,11 +918,13 @@ async function runSearch(){
   }
 }
 
-function renderRows(rows, areaLabel){
+function renderRows(rows, areaLabel, isSingleArea){
   const panel = document.getElementById('resultsPanel');
   const empty = document.getElementById('emptyMsg');
   const tbody = document.getElementById('resultsBody');
+  const table = document.getElementById('resultsTable');
   tbody.innerHTML = '';
+  table.classList.toggle('single-area', !!isSingleArea);
 
   if(rows.length === 0){
     panel.style.display='none';
@@ -931,13 +949,14 @@ function renderRows(rows, areaLabel){
       if(r.features.hanare) featureLabels.push('離れ');
       if(r.features.koshitsuShoku) featureLabels.push('個室食');
       if(r.features.kakenagashi) featureLabels.push('源泉かけ流し');
+      if(r.features.view) featureLabels.push(r.features.view);
     }
     const featureCell = featureLabels.length
       ? featureLabels.map(f=>`<span class="badge">${f}</span>`).join(' ')
       : '<span style="color:var(--mist);">—</span>';
     tr.innerHTML = `
       <td class="hname"><a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
-      <td>${r.areaName || '—'}</td>
+      <td class="col-area">${r.areaName || '—'}</td>
       <td class="num">${yen(r.total)}〜</td>
       <td>${featureCell}</td>
       <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
