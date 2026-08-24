@@ -685,7 +685,12 @@ const BUDGET_PLAN_THRESHOLD = 20000; // これ未満のプランを1つでも持
 function excludeHotelsWithBudgetPlans(rows){
   const hasBudgetPlan = new Map();
   rows.forEach(r=>{
+    // ①今回の検索結果に実際に安いプランが混ざっていた場合
     if(r.total < BUDGET_PLAN_THRESHOLD){
+      hasBudgetPlan.set(r.hotelNo, true);
+    }
+    // ②施設の目安最安値(hotelMinCharge)自体が低い場合（追加通信なしで分かる、今回の日付とは限らない目安）
+    if(r.hotelMinCharge && r.hotelMinCharge < BUDGET_PLAN_THRESHOLD){
       hasBudgetPlan.set(r.hotelNo, true);
     }
   });
@@ -786,6 +791,7 @@ function extractRows(data){
     rows.push({
       hotelNo: basic.hotelNo,
       hotelName: basic.hotelName,
+      hotelMinCharge: basic.hotelMinCharge,
       url: basic.hotelInformationUrl,
       planListUrl: basic.planListUrl,
       reserveUrl: room ? room.reserveUrl : null,
