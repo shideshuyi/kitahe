@@ -3,102 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東北ひとりで泊まれる高級温泉旅館（試作v2・駅絞り込みなし）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<title>ひとりで泊まれる高級温泉宿（全国版・試作v2）</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
-
   :root{
-    --ink: #14181f;
-    --ink-soft: #4a4f58;
-    --stone: #f3efe6;
-    --stone-deep: #e6dfd0;
-    --line: #d9d0bd;
-    --ember: #a8683a;
-    --ember-deep: #7f4d29;
-    --mist: #9195a0;
+    --ink: #0a0a0a;
+    --ink-soft: #4a4a4a;
+    --mist: #8a8a8a;
+    --paper: #ffffff;
+    --paper-deep: #f7f7f7;
+    --line: #1a1a1a;
+    --line-soft: #d8d8d8;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:var(--stone);
+    background:var(--paper);
     color:var(--ink);
-    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",sans-serif;
-    padding:0 0 72px;
+    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    padding:0 0 80px;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:880px;margin:0 auto; padding:0 20px;}
+  .wrap{max-width:840px;margin:0 auto; padding:0 20px;}
 
   header.cover{
-    position:relative;
-    padding:64px 0 40px;
-    margin:0 0 32px;
-    background:
-      radial-gradient(ellipse 900px 320px at 15% -10%, rgba(168,104,58,.14), transparent 60%),
-      linear-gradient(180deg, var(--ink) 0%, #1d232d 100%);
-    color:var(--stone);
-    overflow:hidden;
+    padding:28px 0 40px;
+    margin:0 0 36px;
+    border-bottom:3px solid var(--ink);
+  }
+  header.cover .wrap{
+    padding-top:18px;
+    border-top:1px solid var(--ink);
   }
   h1{
-    margin:0 0 10px;
-    font-family:"Shippori Mincho",serif;
+    margin:0 0 8px;
+    font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
     font-weight:700;
-    font-size:1.9rem;
-    letter-spacing:.04em;
-    line-height:1.4;
-    color:#fbf8f2;
+    font-size:2.4rem;
+    letter-spacing:.02em;
+    line-height:1.3;
+    color:var(--ink);
   }
   h1 small{
     display:block;
-    font-family:"Zen Kaku Gothic New",sans-serif;
+    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     font-size:.72rem;
-    color:var(--ember);
-    letter-spacing:.14em;
-    margin-bottom:14px;
-    font-weight:500;
+    color:var(--ink);
+    letter-spacing:.22em;
+    margin-bottom:16px;
+    font-weight:700;
     text-transform:uppercase;
   }
   .purpose{
-    font-size:.83rem;
-    line-height:1.9;
-    color:#c9cbd1;
-    max-width:640px;
+    font-size:.85rem;
+    line-height:1.8;
+    color:var(--ink-soft);
+    max-width:520px;
   }
 
   section.panel{
-    background:#fbf9f4;
+    background:var(--paper);
     border:1px solid var(--line);
-    padding:26px 28px;
-    margin-bottom:24px;
+    padding:28px 30px;
+    margin-bottom:28px;
   }
   .panel h2{
-    font-family:"Shippori Mincho",serif;
+    font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
     font-weight:700;
-    font-size:1rem;
-    letter-spacing:.04em;
+    font-size:1.15rem;
+    letter-spacing:.02em;
     color:var(--ink);
-    margin:0 0 18px;
-    padding-bottom:12px;
-    border-bottom:1px solid var(--line);
+    margin:0 0 20px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--ink);
   }
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:16px 20px;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:18px 22px;
   }
   label{
     display:block;
-    font-size:.7rem;
+    font-size:.68rem;
     color:var(--mist);
-    letter-spacing:.03em;
-    margin-bottom:6px;
+    letter-spacing:.06em;
+    margin-bottom:7px;
+    text-transform:uppercase;
   }
   input[type=text],input[type=date],select{
     width:100%;
     font-family:"Zen Kaku Gothic New",sans-serif;
-    font-size:.85rem;
-    padding:9px 10px;
+    font-size:.88rem;
+    padding:9px 2px;
     border:none;
-    border-bottom:1.5px solid var(--line);
+    border-bottom:1.5px solid var(--ink);
     background:transparent;
     color:var(--ink);
     border-radius:0;
@@ -106,78 +106,76 @@
   }
   input[type=text]:focus,input[type=date]:focus,select:focus{
     outline:none;
-    border-bottom-color:var(--ember);
+    border-bottom-width:2.5px;
   }
   .checkrow{
     display:flex; align-items:center; gap:8px;
     font-size:.78rem; color:var(--ink-soft);
     margin-top:4px;
   }
-  .actions{margin-top:22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  .actions{margin-top:26px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
   button{
     font-family:"Zen Kaku Gothic New",sans-serif;
-    font-size:.82rem;
-    font-weight:500;
-    padding:12px 30px;
+    font-size:.8rem;
+    font-weight:700;
+    padding:13px 34px;
     background:var(--ink);
-    color:var(--stone);
-    border:none;
-    letter-spacing:.08em;
+    color:var(--paper);
+    border:1.5px solid var(--ink);
+    letter-spacing:.12em;
     cursor:pointer;
-    transition:background .15s ease;
+    transition:background .15s ease, color .15s ease;
   }
-  button:hover{background:var(--ember-deep);}
-  button:disabled{background:#b7b2a4; cursor:default;}
+  button:hover{background:var(--paper); color:var(--ink);}
+  button:disabled{background:var(--line-soft); border-color:var(--line-soft); color:#fff; cursor:default;}
   .status{
     font-size:.78rem; color:var(--mist);
   }
-  .status.err{color:#a3402a;}
+  .status.err{color:var(--ink); font-weight:700;}
   .status.loading{
-    color:var(--ember-deep);
-    font-weight:500;
+    color:var(--ink);
+    font-weight:700;
     font-size:.85rem;
     animation: pulse 1.3s ease-in-out infinite;
   }
   @keyframes pulse{
     0%,100%{opacity:1;}
-    50%{opacity:.4;}
+    50%{opacity:.35;}
   }
 
   .legend{
-    font-size:.72rem;
-    color:var(--mist);
+    font-size:.74rem;
+    color:var(--ink-soft);
     line-height:2;
-    margin-top:20px;
-    padding-top:16px;
-    border-top:1px solid var(--line);
   }
-  .legend b{color:var(--ink);font-weight:500;}
+  .legend b{color:var(--ink);font-weight:700;}
 
   table{
     width:100%;
     border-collapse:collapse;
-    font-size:.85rem;
+    font-size:.86rem;
     background:transparent;
   }
   thead th{
     text-align:left;
     font-size:.68rem;
-    font-weight:500;
-    letter-spacing:.08em;
-    color:var(--mist);
-    padding:0 10px 12px;
-    border-bottom:1.5px solid var(--ink);
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink);
+    padding:0 10px 14px;
+    border-bottom:2.5px solid var(--ink);
   }
   tbody td{
-    padding:18px 10px;
-    border-bottom:1px solid var(--line);
+    padding:20px 10px;
+    border-bottom:1px solid var(--line-soft);
     vertical-align:top;
   }
-  tbody tr:hover{background:var(--stone-deep);}
-  .hname{font-family:"Shippori Mincho",serif; font-weight:700; font-size:1.02rem; color:var(--ink);}
-  .hname a{color:inherit; text-decoration:none; background-image:linear-gradient(var(--ember),var(--ember)); background-size:0% 1.5px; background-repeat:no-repeat; background-position:0 100%; padding-bottom:2px; transition:background-size .2s ease;}
-  .hname a:hover{background-size:100% 1.5px;}
-  .plan{font-size:.74rem; color:var(--mist); margin-top:4px; font-family:"Zen Kaku Gothic New",sans-serif;}
+  tbody tr:hover{background:var(--paper-deep);}
+  .hname{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif; font-weight:700; font-size:1.08rem; color:var(--ink);}
+  .hname a{color:inherit; text-decoration:none; border-bottom:1.5px solid transparent; padding-bottom:2px; transition:border-color .15s ease;}
+  .hname a:hover{border-bottom-color:var(--ink);}
+  .plan{font-size:.74rem; color:var(--mist); margin-top:4px;}
   .num{
     font-variant-numeric:tabular-nums;
     text-align:right;
@@ -187,65 +185,66 @@
     display:inline-block;
     font-size:.68rem;
     padding:3px 9px;
-    border:1px solid var(--line);
-    color:var(--ink-soft);
+    border:1px solid var(--ink);
+    color:var(--ink);
     white-space:nowrap;
   }
   .empty{
-    padding:48px 20px; text-align:center;
+    padding:56px 20px; text-align:center;
     color:var(--mist); font-size:.85rem;
+    border:1px solid var(--line-soft);
   }
+
+  details.advanced{
+    margin-top:16px;
+    border-top:1px solid var(--line-soft);
+    padding-top:16px;
+  }
+  details.advanced summary{
+    cursor:pointer;
+    font-size:.72rem;
+    color:var(--ink);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    font-weight:700;
+    list-style:none;
+  }
+  details.advanced summary::-webkit-details-marker{display:none;}
+  details.advanced summary::before{
+    content:"+ ";
+  }
+  details.advanced[open] summary::before{
+    content:"– ";
+  }
+  details.advanced summary:hover{color:var(--mist);}
 </style>
 </head>
 <body>
   <header class="cover">
     <div class="wrap">
-      <h1>東北ひとりで泊まれる高級温泉旅館
-        <small>楽天トラベル空室検索API・温泉宿×大人1名固定×価格帯で絞り込んだ「実際の支払額」だけを表示する</small>
-      </h1>
-      <div class="purpose">
-        大人1名・指定日程で楽天トラベルに直接問い合わせ、温泉宿かつ指定した価格帯以上のプランだけを一覧にします。<br>
-        ※正直な注記：楽天のAPIには「旅館だけに絞る」という機能が存在しません。ここでの絞り込みは「温泉宿であること」と「価格帯」だけで、施設が正式な旅館かホテルかまでは判別できません。高価格帯・温泉付きという条件で、実質的に旅館寄りの施設が多く出てくることを狙っていますが、100%旅館だけとは限りません。
-      </div>
+      <h1>ひとりで泊まれる高級温泉宿</h1>
     </div>
   </header>
 
 <div class="wrap">
 
   <section class="panel">
-    <h2>検索条件</h2>
-    <div class="grid">
-      <div>
-        <label>楽天ウェブサービス アプリID <span style="color:#b8451f">*必須</span></label>
-        <input type="text" id="appId" placeholder="webservice.rakuten.co.jp で無料取得">
-      </div>
-      <div>
-        <label>アクセスキー <span style="color:#b8451f">*必須</span></label>
-        <input type="text" id="accessKey" placeholder="アプリID発行時に一緒に表示されたaccessKey">
-      </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
       <div>
         <label>都道府県</label>
         <select id="prefSelect">
-          <option value="aomori">青森県</option>
-          <option value="iwate">岩手県</option>
-          <option value="miyagi" selected>宮城県</option>
-          <option value="akita">秋田県</option>
-          <option value="yamagata">山形県</option>
-          <option value="hukushima">福島県</option>
+          <option value="">接続設定を入力してください</option>
         </select>
       </div>
       <div>
-        <label>地区（読み込み後に選択）</label>
-        <div style="display:flex; gap:6px;">
-          <select id="areaSmallSelect" style="flex:1;"><option value="">－右のボタンで読み込んでください－</option></select>
-          <button type="button" id="loadAreaBtn" style="background:var(--gold); padding:7px 12px; font-size:.75rem; white-space:nowrap;">読み込む</button>
-        </div>
+        <label>地区</label>
+        <select id="areaSmallSelect"><option value="">読み込み中…</option></select>
       </div>
       <div id="detailSelectWrap" style="display:none;">
-        <label>さらに細かいエリア（あれば選択）</label>
-        <select id="areaDetailSelect"><option value="">指定なし（地区全体）</option></select>
+        <label>細かいエリア</label>
+        <select id="areaDetailSelect"><option value="">指定なし</option></select>
       </div>
-    <div>
+      <div>
         <label>チェックイン</label>
         <input type="date" id="checkin">
       </div>
@@ -253,47 +252,70 @@
         <label>チェックアウト</label>
         <input type="date" id="checkout">
       </div>
-      <div>
-        <label>評価（口コミ）で絞り込む</label>
-        <select id="minReview">
-          <option value="">指定なし</option>
-          <option value="3.0">★3.0以上</option>
-          <option value="3.5">★3.5以上</option>
-          <option value="4.0" selected>★4.0以上</option>
-          <option value="4.5">★4.5以上</option>
-        </select>
-      </div>
-      <div>
-        <label>最低レビュー件数（信頼性の担保）</label>
-        <input type="text" id="minReviewCount" value="30" placeholder="例：30">
-      </div>
     </div>
-    <div class="checkrow">
-      <span style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.78rem; color:var(--ink-soft);">
-        ✓ このページは温泉宿限定で常に検索します（`squeezeCondition=onsen`固定）
-      </span>
-    </div>
+
     <div class="actions">
       <button id="runBtn">検索する</button>
-      <span class="status" id="statusMsg">アプリIDとアクセスキーを入力してください</span>
+      <span class="status" id="statusMsg">接続設定から始めてください</span>
     </div>
-    <div class="legend">
-      代表価格が安い宿順に、最大30件まで表示します（同じ宿の複数プランは1件にまとめ、条件を満たす中で一番安いプランの金額を代表として表示しています）。<br>
-      施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。<br>
-      「客室露天風呂」は、プラン名・部屋名に「露天風呂付」等の記載がある場合のみ「○」にしています（施設側が自分の商品として明記している情報なので、比較的信頼できます）。「―」は「無い」と確定した訳ではなく、今回取得したプランの中では記載を確認できなかった、という意味です。気になる宿は施設名のリンク先で最終確認してください。
-    </div>
+
+    <details class="advanced">
+      <summary>詳細条件</summary>
+      <div class="grid" style="margin-top:14px;">
+        <div>
+          <label>評価で絞り込む</label>
+          <select id="minReview">
+            <option value="">指定なし</option>
+            <option value="3.0">★3.0以上</option>
+            <option value="3.5">★3.5以上</option>
+            <option value="4.0" selected>★4.0以上</option>
+            <option value="4.5">★4.5以上</option>
+          </select>
+        </div>
+        <div>
+          <label>最低レビュー件数</label>
+          <input type="text" id="minReviewCount" value="30" placeholder="例：30">
+        </div>
+      </div>
+    </details>
+
+    <details class="advanced">
+      <summary>接続設定（初回のみ）</summary>
+      <div class="grid" style="margin-top:14px;">
+        <div>
+          <label>楽天アプリID</label>
+          <input type="text" id="appId" placeholder="webservice.rakuten.co.jpで取得">
+        </div>
+        <div>
+          <label>アクセスキー</label>
+          <input type="text" id="accessKey" placeholder="アプリID発行時のもの">
+        </div>
+        <div>
+          <label>地区一覧</label>
+          <button type="button" id="loadAreaBtn" style="width:100%;">再読込</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="advanced">
+      <summary>この検索について</summary>
+      <div class="legend" style="border-top:none; margin-top:10px; padding-top:0;">
+        施設名のリンクは、検索条件が反映された安全なプラン一覧ページを開きます（決済画面には進みません）。<br>
+        「特徴」は、プラン名・部屋名に記載がある場合のみタグを表示します（客室露天風呂・離れ・個室食・源泉かけ流し）。表示が無くても「無い」と確定した訳ではなく、確認できなかったという意味です。
+      </div>
+    </details>
   </section>
 
   <section class="panel" id="resultsPanel" style="display:none;">
-    <h2>検索結果（この条件で泊まれる宿・安い順）</h2>
+    <h2>検索結果（この条件で泊まれる宿）</h2>
     <div style="overflow-x:auto;">
       <table>
         <thead>
           <tr>
             <th>施設</th>
             <th>エリア</th>
-            <th class="num">代表価格</th>
-            <th class="num">客室露天風呂</th>
+            <th class="num">価格</th>
+            <th>特徴</th>
             <th class="num">評価</th>
           </tr>
         </thead>
@@ -302,12 +324,12 @@
     </div>
   </section>
 
-  <div class="empty" id="emptyMsg">まだ検索していません。条件を入力して「検索する」を押してください。</div>
+  <div class="empty" id="emptyMsg">条件を入力して検索してください。</div>
 
 </div>
 
 <script>
-const TOHOKU_PREFS = ['aomori','iwate','miyagi','akita','yamagata','hukushima']; // 福島は実際のAPIコードが"hukushima"（古いローマ字表記）
+// 全国対応のため、都道府県は固定リストを持たず、地区一覧APIが実際に返してきたコードから動的に生成する
 
 function fmt(d){ return d.toISOString().slice(0,10); }
 const t1 = new Date(); t1.setDate(t1.getDate()+1);
@@ -336,7 +358,7 @@ document.getElementById('checkin').addEventListener('change', ()=>{
     const cached = await window.storage.get('rakuten-area-tree', false);
     if(cached && cached.value){
       const tree = JSON.parse(cached.value);
-      populateSmallSelect(tree);
+      populatePrefSelect(tree);
     }
   }catch(e){ /* キャッシュなし、初回は読み込みボタンで取得 */ }
 })();
@@ -482,19 +504,18 @@ async function loadAreaTree(){
     const data = await apiFetchWithRetry(url, ()=>{ statusMsg.textContent = '接続しています…'; });
     const tree = parseAreaTree(data);
 
-    const gotAny = TOHOKU_PREFS.some(p=>tree[p] && tree[p].smalls.length>0);
-    console.log('地区コードAPIで実際に取得できた都道府県コード一覧:', Object.keys(tree));
-    console.log('東北6県それぞれの取得状況:', TOHOKU_PREFS.map(p=>({県コード:p, 地区数: tree[p] ? tree[p].smalls.length : 0, 表示名: tree[p] ? tree[p].name : '見つからず'})));
-    if(!gotAny){
+    const prefCodes = Object.keys(tree);
+    console.log('地区コードAPIで実際に取得できた都道府県コード一覧:', prefCodes);
+    if(prefCodes.length === 0){
       console.log('地区コードAPI 生データ（調査用・先頭3000文字）:', JSON.stringify(data).slice(0,3000));
       statusMsg.className='status err';
-      statusMsg.textContent = '東北6県のデータが見つかりませんでした。開発者コンソールに生データを出力したので確認してください。';
+      statusMsg.textContent = '都道府県データが見つかりませんでした。開発者コンソールに生データを出力したので確認してください。';
       loadBtn.disabled = false;
       return;
     }
 
     try{ await window.storage.set('rakuten-area-tree', JSON.stringify(tree), false); }catch(e){}
-    populateSmallSelect(tree);
+    populatePrefSelect(tree);
     statusMsg.textContent = '地区一覧を読み込みました。このまま「検索する」を押せます（絞りたい場合は「地区」欄で選び直してください）。';
   }catch(err){
     statusMsg.className='status err';
@@ -502,6 +523,23 @@ async function loadAreaTree(){
   }finally{
     loadBtn.disabled = false;
   }
+}
+
+function populatePrefSelect(tree){
+  window.__areaTree = tree;
+  const prefSel = document.getElementById('prefSelect');
+  const prevValue = prefSel.value;
+  prefSel.innerHTML = '';
+  // 実際にAPIが返してきた都道府県コード・表示名をそのまま使う（コード名を手打ちで推測しない）
+  Object.keys(tree).forEach(code=>{
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = tree[code].name;
+    prefSel.appendChild(opt);
+  });
+  // 前回選んでいた都道府県があれば維持する
+  if(prevValue && tree[prevValue]) prefSel.value = prevValue;
+  populateSmallSelect(tree);
 }
 
 function onAreaSmallChange(){
@@ -635,24 +673,46 @@ function hasRotenburo(roomName, planName){
   // プラン名・部屋名に施設側が明記している表記のみを拾う（誤検知を避けるため自由文は見ない）
   return /露天風呂(付|つき|附)|客室露天|離れ.{0,5}露天|専用露天/.test(text);
 }
+function hasHanare(roomName, planName){
+  const text = `${roomName||''} ${planName||''}`;
+  return /離れ/.test(text);
+}
+function hasKoshitsuShoku(roomName, planName){
+  const text = `${roomName||''} ${planName||''}`;
+  return /個室食|個室でのお食事|お部屋食|部屋食/.test(text);
+}
+function hasKakenagashi(roomName, planName){
+  const text = `${roomName||''} ${planName||''}`;
+  return /源泉かけ流し|源泉掛け流し|かけ流し|掛け流し/.test(text);
+}
 
 function dedupeByHotel(rows){
   const map = new Map();
   rows.forEach(r=>{
-    const rotenburo = hasRotenburo(r.roomName, r.planName);
+    const flags = {
+      rotenburo: hasRotenburo(r.roomName, r.planName),
+      hanare: hasHanare(r.roomName, r.planName),
+      koshitsuShoku: hasKoshitsuShoku(r.roomName, r.planName),
+      kakenagashi: hasKakenagashi(r.roomName, r.planName),
+    };
     const existing = map.get(r.hotelNo);
     if(!existing){
-      map.set(r.hotelNo, {...r, hasRotenburoAnyPlan: rotenburo});
+      map.set(r.hotelNo, {...r, features: flags});
     } else {
-      const flag = existing.hasRotenburoAnyPlan || rotenburo;
+      const mergedFlags = {
+        rotenburo: existing.features.rotenburo || flags.rotenburo,
+        hanare: existing.features.hanare || flags.hanare,
+        koshitsuShoku: existing.features.koshitsuShoku || flags.koshitsuShoku,
+        kakenagashi: existing.features.kakenagashi || flags.kakenagashi,
+      };
       if(r.total < existing.total){
-        map.set(r.hotelNo, {...r, hasRotenburoAnyPlan: flag});
+        map.set(r.hotelNo, {...r, features: mergedFlags});
       } else {
-        existing.hasRotenburoAnyPlan = flag;
+        existing.features = mergedFlags;
       }
     }
   });
-  return Array.from(map.values()).sort((a,b)=>a.total-b.total);
+  return Array.from(map.values()).sort((a,b)=> (a.areaIndex??0) - (b.areaIndex??0) || a.hotelName.localeCompare(b.hotelName, 'ja'));
 }
 
 function mealText(room){
@@ -768,7 +828,7 @@ async function runSearch(){
         try{
           const data = await searchWithRetry(prefCode, sc.code, '', checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
             (attempt, total)=>{ statusMsg.textContent = `${sc.name}の空室を確認しています…`; });
-          const extracted = extractRows(data).map(r => ({...r, areaName: sc.name, smallCodeUsed: sc.code}));
+          const extracted = extractRows(data).map(r => ({...r, areaName: sc.name, smallCodeUsed: sc.code, areaIndex: i}));
           rows = rows.concat(extracted);
           if(data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) totalHit += data.pagingInfo.recordCount;
         }catch(e){
@@ -782,7 +842,7 @@ async function runSearch(){
       const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
         (attempt, total)=>{ statusMsg.textContent = `空室を確認しています…`; });
       const areaName = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
-      rows = extractRows(data).map(r => ({...r, areaName, smallCodeUsed: smallCode}));
+      rows = extractRows(data).map(r => ({...r, areaName, smallCodeUsed: smallCode, areaIndex: 0}));
       beforeFilterCount = rows.length;
       apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
     }
@@ -838,11 +898,21 @@ function renderRows(rows, areaLabel){
 
   rows.forEach(r=>{
     const tr = document.createElement('tr');
+    const featureLabels = [];
+    if(r.features){
+      if(r.features.rotenburo) featureLabels.push('客室露天風呂');
+      if(r.features.hanare) featureLabels.push('離れ');
+      if(r.features.koshitsuShoku) featureLabels.push('個室食');
+      if(r.features.kakenagashi) featureLabels.push('源泉かけ流し');
+    }
+    const featureCell = featureLabels.length
+      ? featureLabels.map(f=>`<span class="badge">${f}</span>`).join(' ')
+      : '<span style="color:var(--mist);">—</span>';
     tr.innerHTML = `
       <td class="hname"><a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
       <td>${r.areaName || '—'}</td>
       <td class="num">${yen(r.total)}〜</td>
-      <td class="num">${r.hasRotenburoAnyPlan ? '○' : '—'}</td>
+      <td>${featureCell}</td>
       <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
     `;
     tbody.appendChild(tr);
