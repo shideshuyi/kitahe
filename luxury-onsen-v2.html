@@ -685,13 +685,23 @@ function excludeHotelsWithBudgetPlans(rows){
   rows.forEach(r=>{
     // ①今回の検索結果に実際に安いプランが混ざっていた場合
     if(r.total < BUDGET_PLAN_THRESHOLD){
-      hasBudgetPlan.set(r.hotelNo, true);
+      hasBudgetPlan.set(r.hotelNo, {reason:'今回のプランに安いものがあった', value:r.total});
     }
     // ②施設の目安最安値(hotelMinCharge)自体が低い場合（追加通信なしで分かる、今回の日付とは限らない目安）
-    if(r.hotelMinCharge && r.hotelMinCharge < BUDGET_PLAN_THRESHOLD){
-      hasBudgetPlan.set(r.hotelNo, true);
+    if(r.hotelMinCharge && r.hotelMinCharge < BUDGET_PLAN_THRESHOLD && !hasBudgetPlan.has(r.hotelNo)){
+      hasBudgetPlan.set(r.hotelNo, {reason:'施設の目安最安値(hotelMinCharge)が低かった', value:r.hotelMinCharge});
     }
   });
+  const excludedDetail = [];
+  rows.forEach(r=>{
+    if(hasBudgetPlan.has(r.hotelNo)){
+      const d = hasBudgetPlan.get(r.hotelNo);
+      if(!excludedDetail.find(x=>x.hotelNo===r.hotelNo)){
+        excludedDetail.push({hotelNo:r.hotelNo, hotelName:r.hotelName, ...d});
+      }
+    }
+  });
+  window.__lastBudgetExcludeDetail = excludedDetail; // デバッグ用に保持
   return rows.filter(r => !hasBudgetPlan.get(r.hotelNo));
 }
 
@@ -891,13 +901,8 @@ async function runSearch(){
     }
 
     // 安いプランを併せ持つ宿は、価格帯フィルタで見えなくなる前にここで除外する
-    const nameByHotelNo = new Map(rows.map(r=>[r.hotelNo, r.hotelName]));
-    const beforeBudgetHotelNos = new Set(rows.map(r=>r.hotelNo));
     rows = excludeHotelsWithBudgetPlans(rows);
-    const afterBudgetHotelNos = new Set(rows.map(r=>r.hotelNo));
-    const excludedByBudget = [...beforeBudgetHotelNos]
-      .filter(no => !afterBudgetHotelNos.has(no))
-      .map(no => nameByHotelNo.get(no));
+    const excludedByBudgetDetail = window.__lastBudgetExcludeDetail || [];
 
     // APIのminChargeは施設単位の目安に対してかかっている可能性があり、
     // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
@@ -909,9 +914,9 @@ async function runSearch(){
     rows = rows.filter(r => !isBusinessChain(r.hotelName));
     const excludedByChain = beforeChainExclude.filter(h => !rows.some(r=>r.hotelNo===h.no));
 
-    if(excludedByBudget.length > 0 || excludedByChain.length > 0){
+    if(excludedByBudgetDetail.length > 0 || excludedByChain.length > 0){
       console.log('【除外された宿の一覧・検証用】', {
-        安いプランを併せ持つため除外: excludedByBudget,
+        安いプランを併せ持つため除外_詳細: excludedByBudgetDetail.map(d=>`${d.hotelName}（理由：${d.reason}／該当額：¥${d.value}）`),
         ビジネスホテルチェーン名として除外: excludedByChain.map(h=>h.name),
       });
     }
