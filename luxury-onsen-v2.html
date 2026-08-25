@@ -387,6 +387,10 @@ async function apiFetch(url){
     let data;
     try{ data = JSON.parse(text); }
     catch(parseErr){ throw new Error(`fetchは通ったが応答がJSONではありません（HTTP ${res.status}）`); }
+    // 「not_found（該当データなし）」は通信エラーではなく、0件という正常な回答として扱う
+    if(data.error === 'not_found'){
+      return { pagingInfo: { recordCount: 0 }, hotels: [] };
+    }
     if(!res.ok || data.error){
       throw new Error(`HTTP ${res.status} ${data.error || ''} ${data.error_description || ''}`.trim());
     }
@@ -395,6 +399,9 @@ async function apiFetch(url){
     console.warn('fetch失敗、JSONPにフォールバック:', fetchErr.message);
   }
   const data = await jsonp(url);
+  if(data && data.error === 'not_found'){
+    return { pagingInfo: { recordCount: 0 }, hotels: [] };
+  }
   if(data && data.error){
     throw new Error(`[JSONP] ${data.error}: ${data.error_description || ''}`);
   }
