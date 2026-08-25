@@ -305,7 +305,8 @@
         「特徴」は、プラン名・部屋名に記載がある場合のみタグを表示します（客室露天風呂・離れ・個室食・源泉かけ流し・オーシャンビュー等の景観表現）。表示が無くても「無い」と確定した訳ではなく、確認できなかったという意味です。<br>
         ドーミーイン・東横イン・スーパーホテル等、主要なビジネスホテルチェーンは、価格帯を満たしていても一覧から除外しています。<br>
         また、同じ宿の中に2万円未満のプランが1つでもある場合、他のプランが高額でも、その宿ごと除外しています（チェーン名を知らない業態にも対応するためです）。<br>
-        部屋名・プラン名に「ファミリー」と明記されている部屋は、価格帯を満たしていても候補から外しています（一人向けの他の部屋があれば、そちらは引き続き候補に残ります。定員人数の多さだけでは判定していません）。
+        部屋名・プラン名に「ファミリー」と明記されている部屋は、価格帯を満たしていても候補から外しています（一人向けの他の部屋があれば、そちらは引き続き候補に残ります。定員人数の多さだけでは判定していません）。<br>
+        施設紹介文に「ビュッフェ」「グランピング」等、大衆向け・団体向けを打ち出す言葉がある宿は、宿ごと除外しています。
       </div>
     </details>
   </section>
@@ -696,6 +697,13 @@ function isFamilyRoom(roomName, planName){
   return /ファミリー/.test(text);
 }
 
+function hasMassMarketSignal(hotelSpecial){
+  // 施設紹介文の中で、宿自身が「ビュッフェ」「グランピング」等の大衆向け・団体向けの
+  // 打ち出し方をしている場合は、高級路線とは異なる可能性が高いため除外する
+  const text = hotelSpecial || '';
+  return /ビュッフェ|バイキング|グランピング|BBQ|宴会場|団体様|複合施設|複合宿泊施設|コンドミニアム|キャンプ場/.test(text);
+}
+
 const BUDGET_PLAN_THRESHOLD = 20000; // これ未満のプランを1つでも持つ宿は、高いプランがあっても除外する
 function excludeHotelsWithBudgetPlans(rows){
   const hasBudgetPlan = new Map();
@@ -919,6 +927,11 @@ async function runSearch(){
     // （宿ごと消すのではなく、他に一人向けの部屋があれば引き続き候補に残る）
     rows = rows.filter(r => !isFamilyRoom(r.roomName, r.planName));
 
+    // 施設紹介文に「ビュッフェ」「グランピング」等の大衆向けシグナルがある宿を除外する
+    const beforeMassMarketExclude = rows.map(r=>({no:r.hotelNo, name:r.hotelName}));
+    rows = rows.filter(r => !hasMassMarketSignal(r.hotelSpecial));
+    const excludedByMassMarket = beforeMassMarketExclude.filter(h => !rows.some(r=>r.hotelNo===h.no));
+
     // 安いプランを併せ持つ宿は、価格帯フィルタで見えなくなる前にここで除外する
     rows = excludeHotelsWithBudgetPlans(rows);
     const excludedByBudgetDetail = window.__lastBudgetExcludeDetail || [];
@@ -933,10 +946,11 @@ async function runSearch(){
     rows = rows.filter(r => !isBusinessChain(r.hotelName));
     const excludedByChain = beforeChainExclude.filter(h => !rows.some(r=>r.hotelNo===h.no));
 
-    if(excludedByBudgetDetail.length > 0 || excludedByChain.length > 0){
+    if(excludedByBudgetDetail.length > 0 || excludedByChain.length > 0 || excludedByMassMarket.length > 0){
       console.log('【除外された宿の一覧・検証用】', {
         安いプランを併せ持つため除外_詳細: excludedByBudgetDetail.map(d=>`${d.hotelName}（理由：${d.reason}／該当額：¥${d.value}）`),
         ビジネスホテルチェーン名として除外: excludedByChain.map(h=>h.name),
+        施設紹介文の大衆向けシグナルで除外: excludedByMassMarket.map(h=>h.name),
       });
     }
 
