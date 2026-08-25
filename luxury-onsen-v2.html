@@ -26,7 +26,7 @@
     padding:0 0 80px;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:840px;margin:0 auto; padding:0 20px;}
+  .wrap{max-width:1120px;margin:0 auto; padding:0 20px;}
 
   header.cover{
     padding:28px 0 40px;
@@ -218,6 +218,34 @@
     content:"– ";
   }
   details.advanced summary:hover{color:var(--mist);}
+
+  .thumb{ width:96px; height:96px; }
+
+  /* スマホ幅では、表をやめてカード表示に切り替える */
+  @media (max-width: 640px){
+    .wrap{ padding:0 14px; }
+    section.panel{ padding:20px 16px; }
+    h1{ font-size:1.7rem; }
+
+    table, thead, tbody, tr, td{ display:block; }
+    thead{ position:absolute; left:-9999px; }
+    tbody tr{
+      border:1px solid var(--line-soft);
+      margin-bottom:16px;
+      padding:14px;
+    }
+    tbody td{ border-bottom:none; padding:4px 0; }
+    tbody td.hname{ padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid var(--line-soft); }
+    tbody td[data-label]::before{
+      content: attr(data-label) "：";
+      display:inline-block;
+      min-width:3.5em;
+      color:var(--mist);
+      font-size:.7rem;
+    }
+    tbody td.num{ text-align:left; }
+    .thumb{ width:104px; height:104px; }
+  }
 </style>
 </head>
 <body>
@@ -1025,14 +1053,14 @@ function renderRows(rows, areaLabel, isSingleArea){
     tr.innerHTML = `
       <td class="hname">
         <div style="display:flex; align-items:center; gap:12px;">
-          ${r.hotelThumbnailUrl ? `<img src="${r.hotelThumbnailUrl}" alt="" loading="lazy" style="width:56px; height:56px; object-fit:cover; flex-shrink:0; border:1px solid var(--line-soft);">` : `<div style="width:56px; height:56px; flex-shrink:0; border:1px solid var(--line-soft); background:var(--paper-deep);"></div>`}
+          ${r.hotelThumbnailUrl ? `<img src="${r.hotelThumbnailUrl}" alt="" loading="lazy" class="thumb" style="object-fit:cover; flex-shrink:0; border:1px solid var(--line-soft);">` : `<div class="thumb" style="flex-shrink:0; border:1px solid var(--line-soft); background:var(--paper-deep);"></div>`}
           <a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a>
         </div>
       </td>
-      <td class="col-area">${r.areaName || '—'}</td>
-      <td class="num">${yen(r.total)}〜</td>
-      <td>${featureCell}</td>
-      <td class="num">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
+      <td class="col-area" data-label="エリア">${r.areaName || '—'}</td>
+      <td class="num" data-label="価格">${yen(r.total)}〜</td>
+      <td data-label="特徴">${featureCell}</td>
+      <td class="num" data-label="評価">${r.reviewAverage!==undefined && r.reviewAverage!==null ? '★'+r.reviewAverage+' ('+(r.reviewCount||0)+')' : '—'}</td>
     `;
     tbody.appendChild(tr);
   });
