@@ -823,6 +823,7 @@ function extractRows(data){
       hotelName: basic.hotelName,
       hotelMinCharge: basic.hotelMinCharge,
       hotelSpecial: basic.hotelSpecial,
+      hotelThumbnailUrl: basic.hotelThumbnailUrl,
       url: basic.hotelInformationUrl,
       planListUrl: basic.planListUrl,
       reserveUrl: room ? room.reserveUrl : null,
@@ -1022,7 +1023,12 @@ function renderRows(rows, areaLabel, isSingleArea){
       ? featureLabels.map(f=>`<span class="badge">${f}</span>`).join(' ')
       : '<span style="color:var(--mist);">—</span>';
     tr.innerHTML = `
-      <td class="hname"><a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
+      <td class="hname">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${r.hotelThumbnailUrl ? `<img src="${r.hotelThumbnailUrl}" alt="" loading="lazy" style="width:56px; height:56px; object-fit:cover; flex-shrink:0; border:1px solid var(--line-soft);">` : `<div style="width:56px; height:56px; flex-shrink:0; border:1px solid var(--line-soft); background:var(--paper-deep);"></div>`}
+          <a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a>
+        </div>
+      </td>
       <td class="col-area">${r.areaName || '—'}</td>
       <td class="num">${yen(r.total)}〜</td>
       <td>${featureCell}</td>
