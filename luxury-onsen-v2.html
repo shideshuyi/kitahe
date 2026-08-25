@@ -219,7 +219,8 @@
   }
   details.advanced summary:hover{color:var(--mist);}
 
-  .thumb{ width:96px; height:96px; }
+  .thumb{ width:140px; height:96px; }
+  .hcard{ display:flex; align-items:center; gap:16px; }
 
   /* スマホ幅では、表をやめてカード表示に切り替える */
   @media (max-width: 640px){
@@ -244,7 +245,9 @@
       font-size:.7rem;
     }
     tbody td.num{ text-align:left; }
-    .thumb{ width:104px; height:104px; }
+    .thumb{ width:100%; height:180px; }
+    .hcard{ display:block; }
+    .hcard a{ display:block; margin-top:10px; }
   }
 </style>
 </head>
@@ -851,7 +854,7 @@ function extractRows(data){
       hotelName: basic.hotelName,
       hotelMinCharge: basic.hotelMinCharge,
       hotelSpecial: basic.hotelSpecial,
-      hotelThumbnailUrl: basic.hotelThumbnailUrl,
+      hotelImageUrl: basic.hotelImageUrl,
       url: basic.hotelInformationUrl,
       planListUrl: basic.planListUrl,
       reserveUrl: room ? room.reserveUrl : null,
@@ -1052,8 +1055,8 @@ function renderRows(rows, areaLabel, isSingleArea){
       : '<span style="color:var(--mist);">—</span>';
     tr.innerHTML = `
       <td class="hname">
-        <div style="display:flex; align-items:center; gap:12px;">
-          ${r.hotelThumbnailUrl ? `<img src="${r.hotelThumbnailUrl}" alt="" loading="lazy" class="thumb" style="object-fit:cover; flex-shrink:0; border:1px solid var(--line-soft);">` : `<div class="thumb" style="flex-shrink:0; border:1px solid var(--line-soft); background:var(--paper-deep);"></div>`}
+        <div class="hcard">
+          ${r.hotelImageUrl ? `<img src="${r.hotelImageUrl}" alt="" loading="lazy" class="thumb" style="object-fit:cover; flex-shrink:0; border:1px solid var(--line-soft);">` : `<div class="thumb" style="flex-shrink:0; border:1px solid var(--line-soft); background:var(--paper-deep);"></div>`}
           <a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a>
         </div>
       </td>
