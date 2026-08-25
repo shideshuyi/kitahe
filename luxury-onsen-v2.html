@@ -682,7 +682,7 @@ const BUSINESS_CHAIN_PATTERNS = [
   'ドーミーイン', '東横イン', 'スーパーホテル', 'アパホテル', 'ホテルルートイン', 'ルートイン',
   'コンフォートホテル', 'ダイワロイネット', 'リッチモンドホテル', '法華クラブ',
   'ワシントンホテル', 'グリーンホテル', 'サンルート', 'チェックインホテル',
-  'メルキュール', 'プレミアホテル',
+  'メルキュール', 'プレミアホテル', '大江戸温泉物語',
 ];
 function isBusinessChain(hotelName){
   return BUSINESS_CHAIN_PATTERNS.some(p => (hotelName||'').includes(p));
@@ -814,6 +814,7 @@ function extractRows(data){
       hotelNo: basic.hotelNo,
       hotelName: basic.hotelName,
       hotelMinCharge: basic.hotelMinCharge,
+      hotelSpecial: basic.hotelSpecial,
       url: basic.hotelInformationUrl,
       planListUrl: basic.planListUrl,
       reserveUrl: room ? room.reserveUrl : null,
@@ -975,6 +976,8 @@ function renderRows(rows, areaLabel, isSingleArea){
   // 「大人数向け部屋を一人で使っている」宿の見分けに使えそうか、まだフィルタには使わずログだけ出す
   console.log('【検証用】各宿のchargeFlag（0=1人あたり料金／1=1室あたり料金）:',
     rows.map(r => `${r.hotelName}：¥${r.total}（chargeFlag=${r.chargeFlag}）`));
+  console.log('【検証用】各宿の施設紹介文（hotelSpecial）:',
+    rows.map(r => ({施設名: r.hotelName, 紹介文: r.hotelSpecial})));
 
   if(rows.length === 0){
     panel.style.display='none';
