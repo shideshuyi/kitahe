@@ -304,7 +304,8 @@
         施設名のリンクは、検索条件が反映された安全なプラン一覧ページを開きます（決済画面には進みません）。<br>
         「特徴」は、プラン名・部屋名に記載がある場合のみタグを表示します（客室露天風呂・離れ・個室食・源泉かけ流し・オーシャンビュー等の景観表現）。表示が無くても「無い」と確定した訳ではなく、確認できなかったという意味です。<br>
         ドーミーイン・東横イン・スーパーホテル等、主要なビジネスホテルチェーンは、価格帯を満たしていても一覧から除外しています。<br>
-        また、同じ宿の中に2万円未満のプランが1つでもある場合、他のプランが高額でも、その宿ごと除外しています（チェーン名を知らない業態にも対応するためです）。
+        また、同じ宿の中に2万円未満のプランが1つでもある場合、他のプランが高額でも、その宿ごと除外しています（チェーン名を知らない業態にも対応するためです）。<br>
+        部屋名・プラン名に「ファミリー」と明記されている部屋は、価格帯を満たしていても候補から外しています（一人向けの他の部屋があれば、そちらは引き続き候補に残ります。定員人数の多さだけでは判定していません）。
       </div>
     </details>
   </section>
@@ -681,9 +682,18 @@ const BUSINESS_CHAIN_PATTERNS = [
   'ドーミーイン', '東横イン', 'スーパーホテル', 'アパホテル', 'ホテルルートイン', 'ルートイン',
   'コンフォートホテル', 'ダイワロイネット', 'リッチモンドホテル', '法華クラブ',
   'ワシントンホテル', 'グリーンホテル', 'サンルート', 'チェックインホテル',
+  'メルキュール', 'プレミアホテル',
 ];
 function isBusinessChain(hotelName){
   return BUSINESS_CHAIN_PATTERNS.some(p => (hotelName||'').includes(p));
+}
+
+function isFamilyRoom(roomName, planName){
+  const text = `${roomName||''} ${planName||''}`;
+  // 「◯名まで宿泊可能」という定員の数字は、家族が同室で寝られる部屋という意味でしかなく、
+  // 高級な部屋でも一人利用を想定していることがあるため、判定には使わない（誤検知の実例あり）。
+  // 宿自身が「ファミリー」と名付けている場合だけを対象にする（宿側の意図が明確なため）
+  return /ファミリー/.test(text);
 }
 
 const BUDGET_PLAN_THRESHOLD = 20000; // これ未満のプランを1つでも持つ宿は、高いプランがあっても除外する
@@ -904,6 +914,10 @@ async function runSearch(){
       apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
     }
 
+    // ファミリールーム（1人向けではなく団体・家族向けの部屋）は、そのプランだけを候補から外す
+    // （宿ごと消すのではなく、他に一人向けの部屋があれば引き続き候補に残る）
+    rows = rows.filter(r => !isFamilyRoom(r.roomName, r.planName));
+
     // 安いプランを併せ持つ宿は、価格帯フィルタで見えなくなる前にここで除外する
     rows = excludeHotelsWithBudgetPlans(rows);
     const excludedByBudgetDetail = window.__lastBudgetExcludeDetail || [];
@@ -956,6 +970,11 @@ function renderRows(rows, areaLabel, isSingleArea){
   const table = document.getElementById('resultsTable');
   tbody.innerHTML = '';
   table.classList.toggle('single-area', !!isSingleArea);
+
+  // 仮説検証用：chargeFlag(0=1人あたり料金／1=1室あたり料金)が
+  // 「大人数向け部屋を一人で使っている」宿の見分けに使えそうか、まだフィルタには使わずログだけ出す
+  console.log('【検証用】各宿のchargeFlag（0=1人あたり料金／1=1室あたり料金）:',
+    rows.map(r => `${r.hotelName}：¥${r.total}（chargeFlag=${r.chargeFlag}）`));
 
   if(rows.length === 0){
     panel.style.display='none';
