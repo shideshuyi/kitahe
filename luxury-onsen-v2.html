@@ -644,8 +644,7 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
     page: 1,
     sort: '+roomCharge'
   };
-  // detailClassCodeは未検証の機能で、400エラー(wrong_parameter)の原因になることが確認できたため、一旦送信を止める
-  // if(detailCode) params.detailClassCode = detailCode;
+  if(detailCode) params.detailClassCode = detailCode;
   if(onsenOnly) params.squeezeCondition = 'onsen';
   if(minCharge) params.minCharge = minCharge;
   if(maxCharge) params.maxCharge = maxCharge;
@@ -913,6 +912,13 @@ async function runSearch(){
   if(new Date(checkout) <= new Date(checkin)){
     statusMsg.textContent = `チェックアウト日（${checkout}）がチェックイン日（${checkin}）以前になっています。チェックアウトをチェックインより後の日付にしてください`;
     statusMsg.className='status err';
+    return;
+  }
+  // 「さらに細かいエリア」の選択欄が表示されている（＝このエリアには細分類がある）のに、
+  // 「指定なし」のまま検索しようとした場合はエラーで止める（APIがこの場合エラーを返すため）
+  if(smallCode && document.getElementById('detailSelectWrap').style.display !== 'none' && !detailCode){
+    statusMsg.textContent = 'このエリアは「さらに細かいエリア」欄で、いずれかを選んでから検索してください';
+    statusMsg.className = 'status err';
     return;
   }
 
