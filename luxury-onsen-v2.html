@@ -522,6 +522,7 @@ function updateDetailSelect(){
     detailSel.appendChild(opt);
   });
   wrap.style.display = 'block';
+  detailSel.value = ''; // ブラウザが古い選択状態を復元してしまう可能性への念のための対策
 }
 
 async function loadAreaTree(){
@@ -643,7 +644,8 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
     page: 1,
     sort: '+roomCharge'
   };
-  if(detailCode) params.detailClassCode = detailCode;
+  // detailClassCodeは未検証の機能で、400エラー(wrong_parameter)の原因になることが確認できたため、一旦送信を止める
+  // if(detailCode) params.detailClassCode = detailCode;
   if(onsenOnly) params.squeezeCondition = 'onsen';
   if(minCharge) params.minCharge = minCharge;
   if(maxCharge) params.maxCharge = maxCharge;
