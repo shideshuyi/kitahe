@@ -974,6 +974,10 @@ async function runSearch(){
           (attempt, total)=>{ statusMsg.textContent = `追加確認の通信が不安定のため再試行中…`; });
         const cheapRows = extractRows(cheapData);
         window.__lastCheapCheckRows = cheapRows; // 検証用に保持
+        console.log('【検証用】2回目（安い順・上限なし）で実際に取得できた宿:',
+          cheapRows.map(r => `${r.hotelName}：¥${r.total}`));
+        console.log('【検証用】その中に「そば庵　しづか亭」は含まれているか:',
+          cheapRows.some(r => r.hotelName.includes('しづか亭')));
         const cheapHotelNos = new Set(cheapRows.filter(r => r.total < BUDGET_PLAN_THRESHOLD).map(r => r.hotelNo));
         rows = rows.filter(r => !cheapHotelNos.has(r.hotelNo));
       }catch(e){
