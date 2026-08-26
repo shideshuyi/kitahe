@@ -363,7 +363,7 @@
   <div class="empty" id="emptyMsg">条件を入力して検索してください。</div>
 
   <div style="text-align:center; font-size:.68rem; color:var(--mist); margin-top:24px;">
-    build: 2026-08-29-doublefetch-debug
+    build: 2026-08-29-route-debug
   </div>
 
 </div>
@@ -939,6 +939,7 @@ async function runSearch(){
     let apiCount = '不明';
 
     if(!smallCode){
+      console.log('【検証用】今回のsmallCodeの値:', JSON.stringify(smallCode), '→「県全体」ルートを実行します（2回目通信は無し）');
       // 「県全体」：その県の全地区を順番に検索して合算する。各行にエリア名を付与する
       const smallsToSearch = (window.__areaTree[prefCode] && window.__areaTree[prefCode].smalls) || [];
       let totalHit = 0;
@@ -959,6 +960,7 @@ async function runSearch(){
       beforeFilterCount = rows.length;
       apiCount = totalHit;
     } else {
+      console.log('【検証用】今回のsmallCodeの値:', JSON.stringify(smallCode), '→「特定地区」ルートを実行します（2回目通信あり）');
       const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
         (attempt, total)=>{ statusMsg.textContent = `空室を確認しています…`; });
       const areaName = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
