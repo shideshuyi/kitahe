@@ -965,6 +965,20 @@ async function runSearch(){
       rows = extractRows(data).map(r => ({...r, areaName, smallCodeUsed: smallCode, areaIndex: 0}));
       beforeFilterCount = rows.length;
       apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
+
+      // 2回目の通信：価格の下限を指定せず、安い順に取得する。
+      // これで「今回の高額プランの裏に、実は安いプランが大量にある宿」を検知できるようにする
+      statusMsg.textContent = '安い順の在庫も確認しています…（精度を上げるための追加確認）';
+      try{
+        const cheapData = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, '', maxCharge,
+          (attempt, total)=>{ statusMsg.textContent = `追加確認の通信が不安定のため再試行中…`; });
+        const cheapRows = extractRows(cheapData);
+        window.__lastCheapCheckRows = cheapRows; // 検証用に保持
+        const cheapHotelNos = new Set(cheapRows.filter(r => r.total < BUDGET_PLAN_THRESHOLD).map(r => r.hotelNo));
+        rows = rows.filter(r => !cheapHotelNos.has(r.hotelNo));
+      }catch(e){
+        console.warn('安い順の追加確認に失敗しました。今回はスキップします:', e.message);
+      }
     }
 
     // ファミリールーム（1人向けではなく団体・家族向けの部屋）は、そのプランだけを候補から外す
