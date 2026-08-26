@@ -363,7 +363,7 @@
   <div class="empty" id="emptyMsg">条件を入力して検索してください。</div>
 
   <div style="text-align:center; font-size:.68rem; color:var(--mist); margin-top:24px;">
-    build: 2026-08-29-route-debug
+    build: 2026-08-29-doublefetch-all
   </div>
 
 </div>
@@ -939,7 +939,7 @@ async function runSearch(){
     let apiCount = '不明';
 
     if(!smallCode){
-      console.log('【検証用】今回のsmallCodeの値:', JSON.stringify(smallCode), '→「県全体」ルートを実行します（2回目通信は無し）');
+      console.log('【検証用】今回のsmallCodeの値:', JSON.stringify(smallCode), '→「県全体」ルートを実行します');
       // 「県全体」：その県の全地区を順番に検索して合算する。各行にエリア名を付与する
       const smallsToSearch = (window.__areaTree[prefCode] && window.__areaTree[prefCode].smalls) || [];
       let totalHit = 0;
@@ -949,13 +949,29 @@ async function runSearch(){
         try{
           const data = await searchWithRetry(prefCode, sc.code, '', checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
             (attempt, total)=>{ statusMsg.textContent = `${sc.name}の空室を確認しています…`; });
-          const extracted = extractRows(data).map(r => ({...r, areaName: sc.name, smallCodeUsed: sc.code, areaIndex: i}));
-          rows = rows.concat(extracted);
+          let extracted = extractRows(data).map(r => ({...r, areaName: sc.name, smallCodeUsed: sc.code, areaIndex: i}));
           if(data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) totalHit += data.pagingInfo.recordCount;
+          await new Promise(r=>setTimeout(r, 1200)); // 連続アクセスを避けるための小休止
+
+          // 条件を満たす宿が実際にあった地区だけ、安いプランの有無を追加確認する（無駄な通信を減らすため）
+          if(extracted.length > 0){
+            try{
+              statusMsg.textContent = `${sc.name}の在庫を追加確認しています…`;
+              const cheapData = await searchWithRetry(prefCode, sc.code, '', checkin, checkout, appId, accessKey, onsenOnly, '', maxCharge,
+                (attempt, total)=>{ statusMsg.textContent = `${sc.name}の追加確認が不安定のため再試行中…`; });
+              const cheapRows = extractRows(cheapData);
+              const cheapHotelNos = new Set(cheapRows.filter(r => r.total < BUDGET_PLAN_THRESHOLD).map(r => r.hotelNo));
+              extracted = extracted.filter(r => !cheapHotelNos.has(r.hotelNo));
+            }catch(e){
+              console.warn(`${sc.name}の安い順追加確認に失敗、スキップします:`, e.message);
+            }
+            await new Promise(r=>setTimeout(r, 1200));
+          }
+          rows = rows.concat(extracted);
         }catch(e){
           console.warn(`${sc.name}の検索に失敗、スキップします:`, e.message);
+          await new Promise(r=>setTimeout(r, 1200));
         }
-        await new Promise(r=>setTimeout(r, 1200)); // 連続アクセスを避けるための小休止
       }
       beforeFilterCount = rows.length;
       apiCount = totalHit;
@@ -1027,7 +1043,7 @@ async function runSearch(){
       ? (document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode)
       : `${document.getElementById('prefSelect').selectedOptions[0]?.textContent}全体`;
 
-    renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, r.smallCodeUsed, checkin, checkout)})), areaLabel, !!smallCode);
+    renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, r.smallCodeUsed, checkin, checkout)})), areaLabel, !!smallCode, apiCount);
     statusMsg.className = 'status';
     statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件（プラン単位） ／ 条件を満たす宿=${rows.length}件（${checkin}〜${checkout}）`;
     if(beforeFilterCount > 0 && rows.length === 0){
@@ -1042,7 +1058,7 @@ async function runSearch(){
   }
 }
 
-function renderRows(rows, areaLabel, isSingleArea){
+function renderRows(rows, areaLabel, isSingleArea, apiCount){
   const panel = document.getElementById('resultsPanel');
   const empty = document.getElementById('emptyMsg');
   const tbody = document.getElementById('resultsBody');
@@ -1060,7 +1076,7 @@ function renderRows(rows, areaLabel, isSingleArea){
   if(rows.length === 0){
     panel.style.display='none';
     empty.style.display='block';
-    empty.textContent = areaLabel + ' で、指定条件・大人1名では該当する温泉宿が見つかりませんでした。価格帯の下限を下げるか、評価の基準を緩めて試してください。';
+    empty.textContent = areaLabel + ' では、指定条件・大人1名で該当する温泉宿が見つかりませんでした。日程やエリアを変えて試してください。';
     return;
   }
   empty.style.display='none';
