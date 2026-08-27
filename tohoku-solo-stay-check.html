@@ -323,7 +323,7 @@
         </div>
       </div>
       <div class="checkrow" style="margin-top:14px;">
-        <input type="checkbox" id="onsenOnly" checked>
+        <input type="checkbox" id="onsenOnly">
         <label for="onsenOnly" style="margin:0;">温泉宿に絞り込む（ビジネスホテル・カプセル系を除外）</label>
       </div>
     </details>
@@ -962,6 +962,13 @@ async function runSearch(){
       if(page < MAX_PAGES) await new Promise(r=>setTimeout(r, 600)); // 連続アクセスを避けるための小休止
     }
     const beforeFilterCount = rows.length;
+    // 診断用：フィルタをかける前の、取得できた生データを全て出力する
+    console.log('【診断用】フィルタ前に取得できた宿の一覧（'+rows.length+'件）:',
+      rows.map(r => `${r.hotelName}：¥${r.total}（評価${r.reviewAverage}／${r.reviewCount}件）`));
+    console.log('【診断用】コンフォートホテル仙台西口(hotelNo:67093)は含まれているか:',
+      rows.some(r => r.hotelNo === 67093 || r.hotelName.includes('コンフォートホテル仙台西口')));
+    console.log('【診断用】ウェスティンホテル仙台(hotelNo:107740)は含まれているか:',
+      rows.some(r => r.hotelNo === 107740 || r.hotelName.includes('ウェスティンホテル仙台')));
     // APIのminCharge/maxChargeは施設単位の目安に対してかかっている可能性があり、
     // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
     const minChargeNum = parseInt(minCharge, 10);
