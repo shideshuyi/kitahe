@@ -738,7 +738,7 @@ function buildSearchUrl(params){
   return base + qs;
 }
 
-async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation){
+async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation, page){
   const params = {
     applicationId: appId,
     accessKey: accessKey,
@@ -751,7 +751,7 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
     searchPattern: 1,
     responseType: 'middle',
     hits: 30,
-    page: 1,
+    page: page || 1,
     sort: '+roomCharge'
   };
   params.largeClassCode = 'japan'; // ドキュメント上、これは常に必須の可能性が高いため両モード共通で送る
@@ -776,12 +776,12 @@ async function searchOnce(prefCode, smallCode, detailCode, checkin, checkout, ap
   return await apiFetch(url);
 }
 
-async function searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation, onRetry){
+async function searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation, page, onRetry){
   const delays = [800, 1600, 3000]; // 段階的に間隔を伸ばす（アクセス制限対策）
   let lastErr;
   for(let i=0; i<=delays.length; i++){
     try{
-      return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation);
+      return await searchOnce(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge, narrowLat, narrowLng, narrowKm, useFreeLocation, page);
     }catch(err){
       lastErr = err;
       if(i < delays.length){
@@ -944,10 +944,23 @@ async function runSearch(){
   try{ await window.storage.set('rakuten-app-id', appId, false); }catch(e){}
 
   try{
-    const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
-      narrowLat, narrowLng, narrowKm, !!window.__freeLocation,
-      (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
-    let rows = extractRows(data);
+    const MAX_PAGES = 4; // hits=30 × 4ページ = 最大120件まで取得する
+    let rows = [];
+    let apiRecordCount = null;
+    for(let page=1; page<=MAX_PAGES; page++){
+      if(page > 1) statusMsg.textContent = `検索中…（${page}/${MAX_PAGES}ページ目）`;
+      const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
+        narrowLat, narrowLng, narrowKm, !!window.__freeLocation, page,
+        (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
+      const pageRows = extractRows(data);
+      rows = rows.concat(pageRows);
+      if(apiRecordCount === null && data && data.pagingInfo && data.pagingInfo.recordCount!==undefined){
+        apiRecordCount = data.pagingInfo.recordCount;
+      }
+      // このページで30件に満たなかった、または全件を取り終えていれば、それ以上ページを繰らない
+      if(pageRows.length < 30 || (apiRecordCount!==null && page*30 >= apiRecordCount)) break;
+      if(page < MAX_PAGES) await new Promise(r=>setTimeout(r, 600)); // 連続アクセスを避けるための小休止
+    }
     const beforeFilterCount = rows.length;
     // APIのminCharge/maxChargeは施設単位の目安に対してかかっている可能性があり、
     // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
@@ -960,7 +973,7 @@ async function runSearch(){
     }
     // 1施設1プランにする：同じ宿は1件にまとめ、一番安いプランを代表とする
     rows = dedupeByHotel(rows);
-    const apiCount = (data && data.pagingInfo && data.pagingInfo.recordCount!==undefined) ? data.pagingInfo.recordCount : '不明';
+    const apiCount = apiRecordCount!==null ? apiRecordCount : '不明';
     const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
 
     renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, smallCode, checkin, checkout)})), areaLabel);
