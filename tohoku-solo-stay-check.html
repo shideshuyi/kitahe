@@ -3,209 +3,265 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <title>東北ひとり宿 実勢価格一覧</title>
 <style>
   :root{
-    --paper: #e9e2d0;
-    --paper-deep: #ded4bc;
-    --ink: #2b2622;
-    --ink-soft: #5c5346;
-    --indigo: #253c56;
-    --indigo-deep: #16283c;
-    --gold: #9c8352;
-    --line: #c9bd9f;
+    --ink: #0a0a0a;
+    --ink-soft: #4a4a4a;
+    --mist: #8a8a8a;
+    --paper: #ffffff;
+    --paper-deep: #f7f7f7;
+    --line: #1a1a1a;
+    --line-soft: #d8d8d8;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:
-      repeating-linear-gradient(180deg, transparent 0 38px, #00000006 38px 39px),
-      var(--paper);
+    background:var(--paper);
     color:var(--ink);
-    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
-    padding:28px 16px 60px;
+    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    padding:0 0 80px;
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:900px;margin:0 auto;}
+  .wrap{max-width:1120px;margin:0 auto; padding:0 20px;}
 
   header.cover{
-    border:1px solid var(--gold);
-    padding:22px 24px;
-    margin-bottom:22px;
-    position:relative;
-    background:var(--paper-deep);
+    padding:28px 0 40px;
+    margin:0 0 36px;
+    border-bottom:3px solid var(--ink);
   }
-  header.cover::before, header.cover::after{
-    content:"";
-    position:absolute; inset:5px;
-    border:1px solid var(--gold);
-    pointer-events:none;
+  header.cover .wrap{
+    padding-top:18px;
+    border-top:1px solid var(--ink);
   }
   h1{
-    margin:0 0 6px;
-    font-size:1.5rem;
-    letter-spacing:.08em;
-    color:var(--indigo-deep);
-    font-weight:600;
+    margin:0 0 8px;
+    font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+    font-weight:700;
+    font-size:2.4rem;
+    letter-spacing:.02em;
+    line-height:1.3;
+    color:var(--ink);
   }
   h1 small{
     display:block;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     font-size:.72rem;
-    color:var(--ink-soft);
-    letter-spacing:.04em;
-    margin-top:4px;
-    font-weight:400;
+    color:var(--ink);
+    letter-spacing:.22em;
+    margin-bottom:16px;
+    font-weight:700;
+    text-transform:uppercase;
   }
   .purpose{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     font-size:.85rem;
     line-height:1.8;
     color:var(--ink-soft);
-    margin-top:10px;
+    max-width:520px;
   }
 
   section.panel{
+    background:var(--paper);
     border:1px solid var(--line);
-    background:#f2ecdd;
-    padding:18px 20px;
-    margin-bottom:18px;
+    padding:28px 30px;
+    margin-bottom:28px;
   }
   .panel h2{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.8rem;
-    letter-spacing:.1em;
-    color:var(--indigo);
-    margin:0 0 14px;
-    border-left:4px solid var(--indigo);
-    padding-left:8px;
+    font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+    font-weight:700;
+    font-size:1.15rem;
+    letter-spacing:.02em;
+    color:var(--ink);
+    margin:0 0 20px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--ink);
   }
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:14px 18px;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:18px 22px;
   }
   label{
     display:block;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.72rem;
-    color:var(--ink-soft);
-    margin-bottom:5px;
+    font-size:.68rem;
+    color:var(--mist);
+    letter-spacing:.06em;
+    margin-bottom:7px;
+    text-transform:uppercase;
   }
   input[type=text],input[type=date],select{
     width:100%;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.85rem;
-    padding:7px 9px;
-    border:1px solid var(--line);
-    background:#fbf8ef;
+    font-family:"Zen Kaku Gothic New",sans-serif;
+    font-size:.88rem;
+    padding:9px 2px;
+    border:none;
+    border-bottom:1.5px solid var(--ink);
+    background:transparent;
     color:var(--ink);
+    border-radius:0;
+    transition:border-color .15s ease;
+  }
+  input[type=text]:focus,input[type=date]:focus,select:focus{
+    outline:none;
+    border-bottom-width:2.5px;
   }
   .checkrow{
     display:flex; align-items:center; gap:8px;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     font-size:.78rem; color:var(--ink-soft);
-    margin-top:2px;
+    margin-top:4px;
   }
-  .actions{margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .actions{margin-top:26px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
   button{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.85rem;
-    padding:9px 22px;
-    background:var(--indigo);
-    color:#f2ecdd;
-    border:none;
-    letter-spacing:.06em;
+    font-family:"Zen Kaku Gothic New",sans-serif;
+    font-size:.8rem;
+    font-weight:700;
+    padding:13px 34px;
+    background:var(--ink);
+    color:var(--paper);
+    border:1.5px solid var(--ink);
+    letter-spacing:.12em;
     cursor:pointer;
+    transition:background .15s ease, color .15s ease;
   }
-  button:hover{background:var(--indigo-deep);}
-  button:disabled{background:#9a9384; cursor:default;}
+  button:hover{background:var(--paper); color:var(--ink);}
+  button:disabled{background:var(--line-soft); border-color:var(--line-soft); color:#fff; cursor:default;}
   .status{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.78rem; color:var(--ink-soft);
+    font-size:.78rem; color:var(--mist);
   }
-  .status.err{color:#b8451f;}
+  .status.err{color:var(--ink); font-weight:700;}
+  .status.loading{
+    color:var(--ink);
+    font-weight:700;
+    font-size:.85rem;
+    animation: pulse 1.3s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:.35;}
+  }
 
   .legend{
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.72rem;
+    font-size:.74rem;
     color:var(--ink-soft);
-    line-height:1.9;
-    margin-top:14px;
-    padding-top:12px;
-    border-top:1px dashed var(--line);
+    line-height:2;
   }
-  .legend b{color:var(--indigo);}
+  .legend b{color:var(--ink);font-weight:700;}
 
   table{
     width:100%;
     border-collapse:collapse;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    font-size:.8rem;
-    background:#f6f1e4;
+    font-size:.86rem;
+    background:transparent;
   }
+  table.single-area .col-area{ display:none; }
   thead th{
     text-align:left;
     font-size:.68rem;
-    letter-spacing:.05em;
-    color:#f2ecdd;
-    background:var(--indigo);
-    padding:9px 10px;
-    position:sticky; top:0;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink);
+    padding:0 10px 14px;
+    border-bottom:2.5px solid var(--ink);
   }
   tbody td{
-    padding:10px 10px;
-    border-bottom:1px solid var(--line);
+    padding:20px 10px;
+    border-bottom:1px solid var(--line-soft);
     vertical-align:top;
   }
-  tbody tr:hover{background:#efe6cf;}
-  .hname{font-weight:600; color:var(--ink);}
-  .hname a{color:inherit; text-decoration:none; border-bottom:1px dotted var(--gold);}
-  .plan{font-size:.74rem; color:var(--ink-soft); margin-top:3px;}
+  tbody tr:hover{background:var(--paper-deep);}
+  .hname{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif; font-weight:700; font-size:1.08rem; color:var(--ink);}
+  .hname a{color:inherit; text-decoration:none; border-bottom:1.5px solid transparent; padding-bottom:2px; transition:border-color .15s ease;}
+  .hname a:hover{border-bottom-color:var(--ink);}
+  .plan{font-size:.74rem; color:var(--mist); margin-top:4px;}
   .num{
-    font-family:"SFMono-Regular",Consolas,monospace;
     font-variant-numeric:tabular-nums;
     text-align:right;
     white-space:nowrap;
   }
   .badge{
     display:inline-block;
-    font-size:.65rem;
-    padding:1px 6px;
-    border:1px solid var(--line);
-    color:var(--ink-soft);
+    font-size:.68rem;
+    padding:3px 9px;
+    border:1px solid var(--ink);
+    color:var(--ink);
     white-space:nowrap;
   }
   .empty{
-    padding:30px; text-align:center;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    color:var(--ink-soft); font-size:.82rem;
+    padding:56px 20px; text-align:center;
+    color:var(--mist); font-size:.85rem;
+    border:1px solid var(--line-soft);
+  }
+
+  details.advanced{
+    margin-top:16px;
+    border-top:1px solid var(--line-soft);
+    padding-top:16px;
+  }
+  details.advanced summary{
+    cursor:pointer;
+    font-size:.72rem;
+    color:var(--ink);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    font-weight:700;
+    list-style:none;
+  }
+  details.advanced summary::-webkit-details-marker{display:none;}
+  details.advanced summary::before{
+    content:"+ ";
+  }
+  details.advanced[open] summary::before{
+    content:"– ";
+  }
+  details.advanced summary:hover{color:var(--mist);}
+
+  .thumb{ width:140px; height:96px; }
+  .hcard{ display:flex; align-items:center; gap:16px; }
+
+  /* スマホ幅では、表をやめてカード表示に切り替える */
+  @media (max-width: 640px){
+    .wrap{ padding:0 14px; }
+    section.panel{ padding:20px 16px; }
+    h1{ font-size:1.7rem; }
+
+    table, thead, tbody, tr, td{ display:block; }
+    thead{ position:absolute; left:-9999px; }
+    tbody tr{
+      border:1px solid var(--line-soft);
+      margin-bottom:16px;
+      padding:14px;
+    }
+    tbody td{ border-bottom:none; padding:4px 0; }
+    tbody td.hname{ padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid var(--line-soft); }
+    tbody td[data-label]::before{
+      content: attr(data-label) "：";
+      display:inline-block;
+      min-width:3.5em;
+      color:var(--mist);
+      font-size:.7rem;
+    }
+    tbody td.num{ text-align:left; }
+    .thumb{ width:100%; height:180px; }
+    .hcard{ display:block; }
+    .hcard a{ display:block; margin-top:10px; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-
   <header class="cover">
-    <h1>東北ひとり宿 実勢価格一覧
-      <small>楽天トラベル空室検索API・大人1名固定で検索した「実際の支払額」だけを表示する</small>
-    </h1>
-    <div class="purpose">
-      大人1名・指定日程で楽天トラベルに直接問い合わせ、実際にヒットしたプランの1泊分の支払額をそのまま一覧にします。
-      この一覧の金額と、実際に楽天トラベルで同じ条件（同じ日程・大人1名）を検索した時の金額が一致しているかを確認するのが目的です。
+    <div class="wrap">
+      <h1>東北ひとり宿 実勢価格一覧</h1>
     </div>
   </header>
 
+<div class="wrap">
+
   <section class="panel">
-    <h2>検索条件</h2>
     <div class="grid">
-      <div>
-        <label>楽天ウェブサービス アプリID <span style="color:#b8451f">*必須</span></label>
-        <input type="text" id="appId" placeholder="webservice.rakuten.co.jp で無料取得">
-      </div>
-      <div>
-        <label>アクセスキー <span style="color:#b8451f">*必須</span></label>
-        <input type="text" id="accessKey" placeholder="アプリID発行時に一緒に表示されたaccessKey">
-      </div>
       <div>
         <label>都道府県</label>
         <select id="prefSelect">
@@ -218,21 +274,63 @@
         </select>
       </div>
       <div>
-        <label>地区（読み込み後に選択）</label>
-        <div style="display:flex; gap:6px;">
-          <select id="areaSmallSelect" style="flex:1;"><option value="">－右のボタンで読み込んでください－</option></select>
-          <button type="button" id="loadAreaBtn" style="background:var(--gold); padding:7px 12px; font-size:.75rem; white-space:nowrap;">読み込む</button>
-        </div>
+        <label>地区</label>
+        <select id="areaSmallSelect"><option value="">読み込み中…</option></select>
       </div>
       <div id="detailSelectWrap" style="display:none;">
-        <label>さらに細かいエリア（あれば選択）</label>
-        <select id="areaDetailSelect"><option value="">指定なし（地区全体）</option></select>
+        <label>細かいエリア</label>
+        <select id="areaDetailSelect"><option value="">指定なし</option></select>
       </div>
-    <div class="checkrow" style="margin-top:8px; align-items:flex-start; flex-direction:column;">
-      <label style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-bottom:4px;">
-        駅を中心にさらに絞り込む（任意。座標は内部で自動設定されます）
-      </label>
-      <div class="grid" style="width:100%;">
+      <div>
+        <label>チェックイン</label>
+        <input type="date" id="checkin">
+      </div>
+      <div>
+        <label>チェックアウト</label>
+        <input type="date" id="checkout">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="runBtn">検索する</button>
+      <span class="status" id="statusMsg">接続設定から始めてください</span>
+    </div>
+
+    <details class="advanced">
+      <summary>詳細条件</summary>
+      <div class="grid" style="margin-top:14px;">
+        <div>
+          <label>価格帯（下限・円）</label>
+          <input type="text" id="minCharge" placeholder="例：3000">
+        </div>
+        <div>
+          <label>価格帯（上限・円）</label>
+          <input type="text" id="maxCharge" placeholder="例：15000">
+        </div>
+        <div>
+          <label>評価で絞り込む</label>
+          <select id="minReview">
+            <option value="">指定なし</option>
+            <option value="3.0">★3.0以上</option>
+            <option value="3.5">★3.5以上</option>
+            <option value="4.0" selected>★4.0以上</option>
+            <option value="4.5">★4.5以上</option>
+          </select>
+        </div>
+        <div>
+          <label>最低レビュー件数</label>
+          <input type="text" id="minReviewCount" value="30" placeholder="例：30">
+        </div>
+      </div>
+      <div class="checkrow" style="margin-top:14px;">
+        <input type="checkbox" id="onsenOnly" checked>
+        <label for="onsenOnly" style="margin:0;">温泉宿に絞り込む（ビジネスホテル・カプセル系を除外）</label>
+      </div>
+    </details>
+
+    <details class="advanced">
+      <summary>駅・地名で絞り込む（任意）</summary>
+      <div class="grid" style="margin-top:14px;">
         <div>
           <label>駅を選ぶ</label>
           <select id="narrowStation">
@@ -248,66 +346,44 @@
           </select>
         </div>
       </div>
-    </div>
-    <div class="checkrow" style="margin-top:8px; align-items:flex-start; flex-direction:column; border-top:1px dashed var(--line); padding-top:10px;">
-      <label style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-bottom:4px;">
-        実験：自由入力で場所を検索（駅を登録していない地名でも使えます・任意）
-      </label>
-      <div class="grid" style="width:100%;">
+      <div class="grid" style="margin-top:14px;">
         <div style="grid-column: span 2;">
-          <label>場所（駅名・地名など）</label>
+          <label>自由入力の場所（駅名・地名など）</label>
           <input type="text" id="freeLocationQuery" placeholder="例：多賀城駅、遠野、古川駅">
         </div>
         <div>
-          <button type="button" id="geocodeBtn" style="background:var(--gold); width:100%;">位置を確認</button>
+          <button type="button" id="geocodeBtn" style="background:var(--ink); color:var(--paper); width:100%; border:1px solid var(--ink); margin-top:20px;">位置を確認</button>
         </div>
       </div>
-      <div id="geocodeResult" style="font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; font-size:.75rem; color:var(--ink-soft); margin-top:6px;"></div>
-    </div>
-    <div>
-        <label>チェックイン</label>
-        <input type="date" id="checkin">
+      <div id="geocodeResult" style="font-size:.75rem; color:var(--ink-soft); margin-top:8px;"></div>
+    </details>
+
+    <details class="advanced">
+      <summary>接続設定（初回のみ）</summary>
+      <div class="grid" style="margin-top:14px;">
+        <div>
+          <label>楽天アプリID</label>
+          <input type="text" id="appId" placeholder="webservice.rakuten.co.jpで取得">
+        </div>
+        <div>
+          <label>アクセスキー</label>
+          <input type="text" id="accessKey" placeholder="アプリID発行時のもの">
+        </div>
+        <div>
+          <label>地区一覧</label>
+          <button type="button" id="loadAreaBtn" style="background:var(--ink); color:var(--paper); width:100%; border:1px solid var(--ink); margin-top:20px;">再読込</button>
+        </div>
       </div>
-      <div>
-        <label>チェックアウト</label>
-        <input type="date" id="checkout">
+    </details>
+
+    <details class="advanced">
+      <summary>この検索について</summary>
+      <div class="legend" style="border-top:none; margin-top:10px; padding-top:0;">
+        価格の安い順に、最大30件まで表示します。<br>
+        施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。<br>
+        「駅から徒歩」は、施設のアクセス文中にある「駅」の近くに書かれた「徒歩◯分」を自動で抜き出した参考値です。書き方によっては抜き出せない宿もあり、その場合は「―」と表示されます。マウスを乗せるとアクセス文の全文を確認できます。
       </div>
-      <div>
-        <label>価格帯（下限・円）</label>
-        <input type="text" id="minCharge" placeholder="例：3000">
-      </div>
-      <div>
-        <label>価格帯（上限・円）</label>
-        <input type="text" id="maxCharge" placeholder="例：15000">
-      </div>
-      <div>
-        <label>評価（口コミ）で絞り込む</label>
-        <select id="minReview">
-          <option value="">指定なし</option>
-          <option value="3.0">★3.0以上</option>
-          <option value="3.5">★3.5以上</option>
-          <option value="4.0" selected>★4.0以上</option>
-          <option value="4.5">★4.5以上</option>
-        </select>
-      </div>
-      <div>
-        <label>最低レビュー件数（信頼性の担保）</label>
-        <input type="text" id="minReviewCount" value="30" placeholder="例：30">
-      </div>
-    </div>
-    <div class="checkrow">
-      <input type="checkbox" id="onsenOnly" checked>
-      <label for="onsenOnly" style="margin:0;">温泉宿に絞り込む（ビジネスホテル・カプセル系を除外）</label>
-    </div>
-    <div class="actions">
-      <button id="runBtn">検索する</button>
-      <span class="status" id="statusMsg">アプリIDとアクセスキーを入力してください</span>
-    </div>
-    <div class="legend">
-      価格の安い順に、最大30件まで表示します。<br>
-      施設名のリンクは、検索した日付・エリア・大人1名の条件が反映された「プラン一覧ページ」を開きます。決済画面には直結しない安全なページです。<br>
-      「駅から徒歩」は、施設のアクセス文中にある「駅」の近くに書かれた「徒歩◯分」を自動で抜き出した参考値です。書き方によっては抜き出せない宿もあり、その場合は「―」と表示されます（数字自体は施設側の記載をそのまま転記していますが、正確な意味の徒歩分数かは保証できないため「参考」としています）。マウスを乗せるとアクセス文の全文を確認できます。
-    </div>
+    </details>
   </section>
 
   <section class="panel" id="resultsPanel" style="display:none;">
@@ -478,7 +554,7 @@ async function geocodeLocation(){
   const resultEl = document.getElementById('geocodeResult');
   if(!query){
     resultEl.textContent = '場所を入力してください';
-    resultEl.style.color = 'var(--vermillion, #b8451f)';
+    resultEl.style.color = 'var(--ink-soft)';
     return;
   }
   resultEl.textContent = '検索中…';
@@ -492,16 +568,16 @@ async function geocodeLocation(){
     const data = await res.json();
     if(!data || data.length === 0){
       resultEl.textContent = `「${query}」が見つかりませんでした。別の書き方（例：地名＋県名）で試してください`;
-      resultEl.style.color = 'var(--vermillion, #b8451f)';
+      resultEl.style.color = 'var(--ink-soft)';
       return;
     }
     const place = data[0];
     window.__freeLocation = { lat: parseFloat(place.lat), lng: parseFloat(place.lon), displayName: place.display_name };
     resultEl.textContent = `✓ この場所として検索します: ${place.display_name}（緯度${place.lat} / 経度${place.lon}）`;
-    resultEl.style.color = 'var(--indigo, #253c56)';
+    resultEl.style.color = 'var(--ink)';
   }catch(err){
     resultEl.textContent = 'エラー: ' + err.message + '（Nominatimが混雑している可能性があります。少し待って再試行してください）';
-    resultEl.style.color = 'var(--vermillion, #b8451f)';
+    resultEl.style.color = 'var(--ink-soft)';
   }
 }
 
