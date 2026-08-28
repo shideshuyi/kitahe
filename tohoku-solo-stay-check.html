@@ -834,15 +834,23 @@ function toHalfWidthDigits(s){
 
 function extractStationWalk(accessText){
   const t = toHalfWidthDigits(accessText);
-  // 括弧は空白に置換してから駅名を探す（隣の駅名同士がくっつくのを防ぐ）
+  // 括弧は空白に置換してから探す（隣の駅名同士がくっつくのを防ぐ）
   const stripped = t.replace(/[「」()（）]/g, ' ');
-  const stationMatch = stripped.match(/([A-Za-z0-9ぁ-んァ-ヴー一-龠]{1,12}駅)/);
-  if(!stationMatch) return null;
-  const stationName = stationMatch[1];
-  const idx = stripped.indexOf(stationMatch[0]);
-  const window = stripped.slice(idx, idx+40);
-  const walkMatch = window.match(/徒歩\D{0,5}?(\d+)\s*分/);
+
+  // 「徒歩◯分」を先に見つけ、そこから手前を遡って一番近い駅名を探す方式。
+  // （「駅名を先に見つけて、近くの徒歩分数を探す」方式だと、駅が複数出てくる文で
+  //   無関係な駅と徒歩分数を誤って結び付けることがあったため、この順序に変更）
+  const walkMatch = stripped.match(/徒歩\D{0,5}?(\d+)\s*分/);
   if(!walkMatch) return null;
+  const walkIdx = stripped.indexOf(walkMatch[0]);
+
+  const before = stripped.slice(0, walkIdx);
+  // 「◯駅より２つ目」のような、路線上の位置説明だけの駅名はノイズとして除外する
+  const cleaned = before.replace(/[一-龥ぁ-んァ-ヶーA-Za-z0-9]{1,12}駅より\d+つ目/g, '');
+  const stationMatches = [...cleaned.matchAll(/([A-Za-z0-9ぁ-んァ-ヶーA-Za-z一-龥]{1,12}駅)/g)];
+  if(stationMatches.length === 0) return null;
+  const stationName = stationMatches[stationMatches.length - 1][1]; // 徒歩◯分に一番近い駅名を採用
+
   return { station: stationName, minutes: walkMatch[1] };
 }
 
