@@ -403,6 +403,9 @@
         <tbody id="resultsBody"></tbody>
       </table>
     </div>
+    <div style="text-align:center; margin-top:20px;">
+      <button type="button" id="loadMoreBtn" style="display:none;" onclick="fetchNextBatch(false)">続きを読み込む（さらに最大120件）</button>
+    </div>
   </section>
 
   <div class="empty" id="emptyMsg">まだ検索していません。条件を入力して「検索する」を押してください。</div>
@@ -899,6 +902,9 @@ function yen(n){
   return '¥' + Number(n).toLocaleString('ja-JP');
 }
 
+// 検索条件と、これまでに取得した生データを保持しておく（「続きを読み込む」用）
+window.__searchState = null;
+
 async function runSearch(){
   const appId = document.getElementById('appId').value.trim();
   const accessKey = document.getElementById('accessKey').value.trim();
@@ -916,7 +922,6 @@ async function runSearch(){
   const narrowKm = document.getElementById('narrowKm').value;
   let narrowLat = '', narrowLng = '';
   if(window.__freeLocation){
-    // 自由入力で場所が確認済みなら、それを優先する
     narrowLat = window.__freeLocation.lat;
     narrowLng = window.__freeLocation.lng;
   } else if(narrowStationIdx !== ''){
@@ -937,67 +942,105 @@ async function runSearch(){
     return;
   }
 
-  runBtn.disabled = true;
-  statusMsg.className = 'status';
-  statusMsg.textContent = '検索中…';
+  // 新しい検索条件で、状態をリセットする
+  window.__searchState = {
+    prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly,
+    minCharge, maxCharge, minReview, minReviewCount, narrowLat, narrowLng, narrowKm,
+    useFreeLocation: !!window.__freeLocation,
+    rawRows: [],
+    nextPage: 1,
+    apiRecordCount: null,
+  };
 
-  try{ await window.storage.set('rakuten-app-id', appId, false); }catch(e){}
+  await fetchNextBatch(true);
+}
+
+// 4ページ分（最大120件）をまとめて1バッチとして取得する。
+// isFirstRun=trueなら「検索する」ボタン、falseなら「続きを読み込む」ボタンからの呼び出し。
+async function fetchNextBatch(isFirstRun){
+  const s = window.__searchState;
+  if(!s) return;
+  const statusMsg = document.getElementById('statusMsg');
+  const runBtn = document.getElementById('runBtn');
+  const moreBtn = document.getElementById('loadMoreBtn');
+
+  runBtn.disabled = true;
+  if(moreBtn) moreBtn.disabled = true;
+  statusMsg.className = 'status';
+  statusMsg.textContent = isFirstRun ? '検索中…' : '続きを読み込んでいます…';
+
+  if(isFirstRun){
+    try{ await window.storage.set('rakuten-app-id', s.appId, false); }catch(e){}
+  }
 
   try{
-    const MAX_PAGES = 4; // hits=30 × 4ページ = 最大120件まで取得する
-    let rows = [];
-    let apiRecordCount = null;
-    for(let page=1; page<=MAX_PAGES; page++){
-      if(page > 1) statusMsg.textContent = `検索中…（${page}/${MAX_PAGES}ページ目）`;
-      const data = await searchWithRetry(prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly, minCharge, maxCharge,
-        narrowLat, narrowLng, narrowKm, !!window.__freeLocation, page,
+    const BATCH_PAGES = 4; // 1回のバッチで、hits=30 × 4ページ = 最大120件まで取得する
+    const startPage = s.nextPage;
+    for(let i=0; i<BATCH_PAGES; i++){
+      const page = startPage + i;
+      statusMsg.textContent = (isFirstRun ? '検索中…' : '続きを読み込んでいます…') + `（${page}ページ目）`;
+      const data = await searchWithRetry(s.prefCode, s.smallCode, s.detailCode, s.checkin, s.checkout, s.appId, s.accessKey, s.onsenOnly, s.minCharge, s.maxCharge,
+        s.narrowLat, s.narrowLng, s.narrowKm, s.useFreeLocation, page,
         (attempt, total)=>{ statusMsg.textContent = `通信が不安定だったため再試行しています…（${attempt}/${total}回目）`; });
       const pageRows = extractRows(data);
-      rows = rows.concat(pageRows);
-      if(apiRecordCount === null && data && data.pagingInfo && data.pagingInfo.recordCount!==undefined){
-        apiRecordCount = data.pagingInfo.recordCount;
+      s.rawRows = s.rawRows.concat(pageRows);
+      s.nextPage = page + 1;
+      if(s.apiRecordCount === null && data && data.pagingInfo && data.pagingInfo.recordCount!==undefined){
+        s.apiRecordCount = data.pagingInfo.recordCount;
       }
       // このページで30件に満たなかった、または全件を取り終えていれば、それ以上ページを繰らない
-      if(pageRows.length < 30 || (apiRecordCount!==null && page*30 >= apiRecordCount)) break;
-      if(page < MAX_PAGES) await new Promise(r=>setTimeout(r, 600)); // 連続アクセスを避けるための小休止
+      if(pageRows.length < 30 || (s.apiRecordCount!==null && page*30 >= s.apiRecordCount)){
+        s.exhausted = true;
+        break;
+      }
+      if(i < BATCH_PAGES-1) await new Promise(r=>setTimeout(r, 600)); // 連続アクセスを避けるための小休止
     }
-    const beforeFilterCount = rows.length;
-    // 診断用：フィルタをかける前の、取得できた生データを全て出力する
-    console.log('【診断用】フィルタ前に取得できた宿の一覧（'+rows.length+'件）:',
-      rows.map(r => `${r.hotelName}：¥${r.total}（評価${r.reviewAverage}／${r.reviewCount}件）`));
-    console.log('【診断用】コンフォートホテル仙台西口(hotelNo:67093)は含まれているか:',
-      rows.some(r => r.hotelNo === 67093 || r.hotelName.includes('コンフォートホテル仙台西口')));
-    console.log('【診断用】ウェスティンホテル仙台(hotelNo:107740)は含まれているか:',
-      rows.some(r => r.hotelNo === 107740 || r.hotelName.includes('ウェスティンホテル仙台')));
-    // APIのminCharge/maxChargeは施設単位の目安に対してかかっている可能性があり、
-    // その日程の実際の価格(total)を保証しないため、ここでもう一度確実に絞り込む
-    const minChargeNum = parseInt(minCharge, 10);
-    const maxChargeNum = parseInt(maxCharge, 10);
-    if(!isNaN(minChargeNum)){ rows = rows.filter(r => r.total >= minChargeNum); }
-    if(!isNaN(maxChargeNum)){ rows = rows.filter(r => r.total <= maxChargeNum); }
-    if(minReview > 0 || minReviewCount > 0){
-      rows = rows.filter(r => (r.reviewAverage||0) >= minReview && (r.reviewCount||0) >= minReviewCount);
-    }
-    // 1施設1プランにする：同じ宿は1件にまとめ、一番安いプランを代表とする
-    rows = dedupeByHotel(rows);
-    const apiCount = apiRecordCount!==null ? apiRecordCount : '不明';
-    const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || smallCode;
 
-    renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, prefCode, smallCode, checkin, checkout)})), areaLabel);
-    const stationName = window.__freeLocation
-      ? window.__freeLocation.displayName.split('、')[0].split(',')[0]
-      : (narrowStationIdx !== '' ? ((STATION_COORDS[prefCode]&&STATION_COORDS[prefCode][smallCode])||[])[parseInt(narrowStationIdx,10)]?.name : null);
-    const narrowNote = stationName ? `［${stationName}中心 半径${narrowKm}kmに絞り込み］` : '';
-    statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得=${beforeFilterCount}件 ／ 評価絞込後=${rows.length}件（${checkin}〜${checkout}）${narrowNote}`;
-    if(beforeFilterCount > 0 && rows.length === 0){
-      statusMsg.textContent += ' ※評価・件数の基準で全て除外されました。基準を緩めてもう一度お試しください。';
-    }
+    applyFiltersAndRender();
   }catch(err){
     statusMsg.className = 'status err';
     statusMsg.textContent = 'エラー: ' + err.message;
   }finally{
-    // 連打による短時間集中アクセスを防ぐため、1.5秒はボタンを無効化する
-    setTimeout(()=>{ runBtn.disabled = false; }, 1500);
+    setTimeout(()=>{ runBtn.disabled = false; if(moreBtn) moreBtn.disabled = false; }, 1500);
+  }
+}
+
+// 保持している生データ全体に、フィルタ・重複排除をかけて表示する
+function applyFiltersAndRender(){
+  const s = window.__searchState;
+  if(!s) return;
+  const statusMsg = document.getElementById('statusMsg');
+  let rows = s.rawRows.slice();
+  const beforeFilterCount = rows.length;
+
+  const minChargeNum = parseInt(s.minCharge, 10);
+  const maxChargeNum = parseInt(s.maxCharge, 10);
+  if(!isNaN(minChargeNum)){ rows = rows.filter(r => r.total >= minChargeNum); }
+  if(!isNaN(maxChargeNum)){ rows = rows.filter(r => r.total <= maxChargeNum); }
+  if(s.minReview > 0 || s.minReviewCount > 0){
+    rows = rows.filter(r => (r.reviewAverage||0) >= s.minReview && (r.reviewCount||0) >= s.minReviewCount);
+  }
+  // 1施設1プランにする：同じ宿は1件にまとめ、一番安いプランを代表とする
+  rows = dedupeByHotel(rows);
+  const apiCount = s.apiRecordCount!==null ? s.apiRecordCount : '不明';
+  const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || s.smallCode;
+
+  renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, s.prefCode, s.smallCode, s.checkin, s.checkout)})), areaLabel);
+
+  const stationName = s.useFreeLocation && window.__freeLocation
+    ? window.__freeLocation.displayName.split('、')[0].split(',')[0]
+    : null;
+  const narrowNote = stationName ? `［${stationName}中心 半径${s.narrowKm}kmに絞り込み］` : '';
+
+  const fetchedSoFar = s.rawRows.length;
+  const hasMore = !s.exhausted && s.apiRecordCount!==null && fetchedSoFar < s.apiRecordCount;
+  const moreBtn = document.getElementById('loadMoreBtn');
+  if(moreBtn) moreBtn.style.display = hasMore ? 'inline-block' : 'none';
+
+  statusMsg.textContent = `${areaLabel}：APIヒット数=${apiCount}件 ／ 取得済=${fetchedSoFar}件 ／ 評価絞込後=${rows.length}件（${s.checkin}〜${s.checkout}）${narrowNote}` +
+    (hasMore ? '　※まだ続きがあります' : '');
+  if(beforeFilterCount > 0 && rows.length === 0){
+    statusMsg.textContent += ' ※評価・件数の基準で全て除外されました。基準を緩めてもう一度お試しください。';
   }
 }
 
