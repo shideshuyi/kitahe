@@ -328,7 +328,7 @@
     </div>
 
     <details class="advanced">
-      <summary>駅・地名で絞り込む（任意）</summary>
+      <summary>駅で絞り込む（任意）</summary>
       <div class="grid" style="margin-top:14px;">
         <div>
           <label>駅を選ぶ</label>
@@ -345,16 +345,6 @@
           </select>
         </div>
       </div>
-      <div class="grid" style="margin-top:14px;">
-        <div style="grid-column: span 2;">
-          <label>自由入力の場所（駅名・地名など）</label>
-          <input type="text" id="freeLocationQuery" placeholder="例：多賀城駅、遠野、古川駅">
-        </div>
-        <div>
-          <button type="button" id="geocodeBtn" style="background:var(--ink); color:var(--paper); width:100%; border:1px solid var(--ink); margin-top:20px;">この場所で検索</button>
-        </div>
-      </div>
-      <div id="geocodeResult" style="font-size:.75rem; color:var(--ink-soft); margin-top:8px;"></div>
     </details>
 
     <details class="advanced">
@@ -562,57 +552,6 @@ const STATION_COORDS = {
   },
 };
 
-// ---- 自由入力の地名検索（Nominatim/OpenStreetMap、無料のジオコーディングサービス）----
-window.__freeLocation = null; // {lat, lng, displayName}
-
-async function geocodeLocation(){
-  const query = document.getElementById('freeLocationQuery').value.trim();
-  const resultEl = document.getElementById('geocodeResult');
-  if(!query){
-    resultEl.textContent = '場所を入力してください';
-    resultEl.style.color = 'var(--ink-soft)';
-    return;
-  }
-  resultEl.textContent = '検索中…';
-  resultEl.style.color = 'var(--ink-soft)';
-  window.__freeLocation = null;
-
-  try{
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=jp&accept-language=ja&q=${encodeURIComponent(query)}`;
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if(!data || data.length === 0){
-      resultEl.textContent = `「${query}」が見つかりませんでした。別の書き方（例：地名＋県名）で試してください`;
-      resultEl.style.color = 'var(--ink-soft)';
-      return;
-    }
-    const place = data[0];
-    window.__freeLocation = { lat: parseFloat(place.lat), lng: parseFloat(place.lon), displayName: place.display_name };
-
-    // 選んでいる都道府県と、検索結果の都道府県が食い違っていないか確認する
-    const prefLabel = document.getElementById('prefSelect').selectedOptions[0]?.textContent || '';
-    const prefNameOnly = prefLabel.replace(/[都道府県]$/,''); // 「宮城県」→「宮城」
-    const mismatchWarning = (prefNameOnly && !place.display_name.includes(prefNameOnly))
-      ? `　⚠ 選んでいる都道府県（${prefLabel}）と結果の場所が違う可能性があります。内容をよく確認してください。`
-      : '';
-
-    resultEl.textContent = `✓ この場所として検索します: ${place.display_name}（緯度${place.lat} / 経度${place.lon}）${mismatchWarning}`;
-    resultEl.style.color = mismatchWarning ? '#a3402a' : 'var(--ink)';
-  }catch(err){
-    resultEl.textContent = 'エラー: ' + err.message + '（Nominatimが混雑している可能性があります。少し待って再試行してください）';
-    resultEl.style.color = 'var(--ink-soft)';
-  }
-}
-
-document.getElementById('geocodeBtn').addEventListener('click', geocodeLocation);
-document.getElementById('freeLocationQuery').addEventListener('input', ()=>{
-  // 文字を編集したら、古い確認結果は無効にする（再確認せず古い場所が使われ続けるのを防ぐ）
-  window.__freeLocation = null;
-  document.getElementById('geocodeResult').textContent = '（内容を変更したので、もう一度「この場所で検索」を押してください）';
-  document.getElementById('geocodeResult').style.color = 'var(--ink-soft)';
-});
-
 function updateStationSelect(){
   const prefCode = document.getElementById('prefSelect').value;
   const smallCode = document.getElementById('areaSmallSelect').value;
@@ -714,20 +653,11 @@ async function loadAreaTree(){
 }
 
 function onAreaSmallChange(){
-  // 地区を切り替えたら、自由入力の古い場所が残って優先され続けないようにクリアする
-  window.__freeLocation = null;
-  document.getElementById('freeLocationQuery').value = '';
-  document.getElementById('geocodeResult').textContent = '';
   updateDetailSelect();
   updateStationSelect();
 }
 
 document.getElementById('prefSelect').addEventListener('change', async ()=>{
-  // 都道府県を切り替えたら、自由入力の古い場所が残って優先され続けないようにクリアする
-  window.__freeLocation = null;
-  document.getElementById('freeLocationQuery').value = '';
-  document.getElementById('geocodeResult').textContent = '';
-
   if(window.__areaTree){
     populateSmallSelect(window.__areaTree);
   } else {
@@ -960,21 +890,18 @@ async function runSearch(){
   const minReviewCount = parseInt(document.getElementById('minReviewCount').value) || 0;
   const narrowStationIdx = document.getElementById('narrowStation').value;
   const narrowKm = document.getElementById('narrowKm').value;
-  let narrowLat = '', narrowLng = '';
-  if(window.__freeLocation){
-    narrowLat = window.__freeLocation.lat;
-    narrowLng = window.__freeLocation.lng;
-  } else if(narrowStationIdx !== ''){
+  let narrowLat = '', narrowLng = '', narrowStationName = '';
+  if(narrowStationIdx !== ''){
     const stationList = (STATION_COORDS[prefCode] && STATION_COORDS[prefCode][smallCode]) || [];
     const st = stationList[parseInt(narrowStationIdx, 10)];
-    if(st){ narrowLat = st.lat; narrowLng = st.lng; }
+    if(st){ narrowLat = st.lat; narrowLng = st.lng; narrowStationName = st.name; }
   }
   const statusMsg = document.getElementById('statusMsg');
   const runBtn = document.getElementById('runBtn');
 
   if(!appId){ statusMsg.textContent = 'アプリIDを入力してください'; statusMsg.className='status err'; return; }
   if(!accessKey){ statusMsg.textContent = 'アクセスキーを入力してください'; statusMsg.className='status err'; return; }
-  if(!smallCode && !window.__freeLocation){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して地区を選ぶか、自由入力で場所を確認してください'; statusMsg.className='status err'; return; }
+  if(!smallCode){ statusMsg.textContent = '先に「地区一覧を読み込む」を押して地区を選んでください'; statusMsg.className='status err'; return; }
   if(!checkin || !checkout){ statusMsg.textContent = '日付を指定してください'; statusMsg.className='status err'; return; }
   if(new Date(checkout) <= new Date(checkin)){
     statusMsg.textContent = `チェックアウト日（${checkout}）がチェックイン日（${checkin}）以前になっています。チェックアウトをチェックインより後の日付にしてください`;
@@ -985,8 +912,8 @@ async function runSearch(){
   // 新しい検索条件で、状態をリセットする
   window.__searchState = {
     prefCode, smallCode, detailCode, checkin, checkout, appId, accessKey, onsenOnly,
-    minCharge, maxCharge, minReview, minReviewCount, narrowLat, narrowLng, narrowKm,
-    useFreeLocation: !!window.__freeLocation,
+    minCharge, maxCharge, minReview, minReviewCount, narrowLat, narrowLng, narrowKm, narrowStationName,
+    useFreeLocation: false,
     rawRows: [],
     nextPage: 1,
     apiRecordCount: null,
@@ -1075,10 +1002,7 @@ function applyFiltersAndRender(){
 
   renderRows(rows.map(r => ({...r, conditionUrl: buildConditionAwarePlanUrl(r.hotelNo, s.prefCode, s.smallCode, s.checkin, s.checkout)})), areaLabel);
 
-  const stationName = s.useFreeLocation && window.__freeLocation
-    ? window.__freeLocation.displayName.split('、')[0].split(',')[0]
-    : null;
-  const narrowNote = stationName ? `［${stationName}中心 半径${s.narrowKm}kmに絞り込み］` : '';
+  const narrowNote = s.narrowStationName ? `［${s.narrowStationName}中心 半径${s.narrowKm}kmに絞り込み］` : '';
 
   const fetchedSoFar = s.rawRows.length;
   const hasMore = !s.exhausted && s.apiRecordCount!==null && fetchedSoFar < s.apiRecordCount;
