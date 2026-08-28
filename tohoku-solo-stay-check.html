@@ -351,7 +351,7 @@
           <input type="text" id="freeLocationQuery" placeholder="例：多賀城駅、遠野、古川駅">
         </div>
         <div>
-          <button type="button" id="geocodeBtn" style="background:var(--ink); color:var(--paper); width:100%; border:1px solid var(--ink); margin-top:20px;">位置を確認</button>
+          <button type="button" id="geocodeBtn" style="background:var(--ink); color:var(--paper); width:100%; border:1px solid var(--ink); margin-top:20px;">この場所で検索</button>
         </div>
       </div>
       <div id="geocodeResult" style="font-size:.75rem; color:var(--ink-soft); margin-top:8px;"></div>
@@ -597,7 +597,7 @@ document.getElementById('geocodeBtn').addEventListener('click', geocodeLocation)
 document.getElementById('freeLocationQuery').addEventListener('input', ()=>{
   // 文字を編集したら、古い確認結果は無効にする（再確認せず古い場所が使われ続けるのを防ぐ）
   window.__freeLocation = null;
-  document.getElementById('geocodeResult').textContent = '（内容を変更したので、もう一度「位置を確認」を押してください）';
+  document.getElementById('geocodeResult').textContent = '（内容を変更したので、もう一度「この場所で検索」を押してください）';
   document.getElementById('geocodeResult').style.color = 'var(--ink-soft)';
 });
 
