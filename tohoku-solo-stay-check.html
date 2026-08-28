@@ -386,9 +386,19 @@
   </section>
 
   <section class="panel" id="resultsPanel" style="display:none;">
-    <h2>検索結果（1泊あたりの実勢価格・安い順）</h2>
-    <div style="overflow-x:auto;">
-      <table>
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+      <h2 style="margin:0;">検索結果</h2>
+      <div>
+        <label style="display:inline; margin-right:8px;">並び替え</label>
+        <select id="sortOrder" onchange="applyFiltersAndRender()" style="width:auto; display:inline-block;">
+          <option value="price_asc">価格の安い順</option>
+          <option value="price_desc">価格の高い順</option>
+          <option value="review_desc">評価の高い順</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto; margin-top:14px;">
+      <table id="resultsTable">
         <thead>
           <tr>
             <th>施設</th>
@@ -879,6 +889,7 @@ function extractRows(data){
     rows.push({
       hotelNo: basic.hotelNo,
       hotelName: basic.hotelName,
+      hotelImageUrl: basic.hotelImageUrl,
       url: basic.hotelInformationUrl,
       planListUrl: basic.planListUrl,
       reserveUrl: room ? room.reserveUrl : null,
@@ -1027,6 +1038,14 @@ function applyFiltersAndRender(){
   }
   // 1施設1プランにする：同じ宿は1件にまとめ、一番安いプランを代表とする
   rows = dedupeByHotel(rows);
+  // 選択された並び替え順を適用する（dedupeByHotel内のデフォルト並び順を上書きする）
+  const sortOrder = document.getElementById('sortOrder').value;
+  if(sortOrder === 'price_desc'){
+    rows.sort((a,b)=>b.total-a.total);
+  } else if(sortOrder === 'review_desc'){
+    rows.sort((a,b)=>(b.reviewAverage||0)-(a.reviewAverage||0));
+  }
+  // 'price_asc'はdedupeByHotelの結果がそのまま安い順なので、何もしなくて良い
   const apiCount = s.apiRecordCount!==null ? s.apiRecordCount : '不明';
   const areaLabel = document.getElementById('areaSmallSelect').selectedOptions[0]?.textContent || s.smallCode;
 
@@ -1073,7 +1092,12 @@ function renderRows(rows, areaLabel){
   rows.forEach(r=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="hname"><a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a></td>
+      <td class="hname">
+        <div class="hcard">
+          ${r.hotelImageUrl ? `<img src="${r.hotelImageUrl}" alt="" loading="lazy" class="thumb" style="object-fit:cover; flex-shrink:0; border:1px solid var(--line-soft);">` : `<div class="thumb" style="flex-shrink:0; border:1px solid var(--line-soft); background:var(--paper-deep);"></div>`}
+          <a href="${r.conditionUrl || r.planListUrl || r.url}" target="_blank" rel="noopener">${r.hotelName}</a>
+        </div>
+      </td>
       <td>${r.roomName || ''}<div class="plan">${r.planName || ''}</div></td>
       <td class="num">${yen(r.total)}〜</td>
       <td><span class="badge">${r.meal}</span></td>
