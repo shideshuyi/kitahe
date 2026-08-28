@@ -289,44 +289,43 @@
         <label>チェックアウト</label>
         <input type="date" id="checkout">
       </div>
+      <div style="grid-column: span 2;">
+        <label>価格帯・条件</label>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--ink);">
+            <input type="radio" name="priceMode" value="5000-10000" checked> 5,000円〜10,000円
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--ink);">
+            <input type="radio" name="priceMode" value="10000-20000"> 10,000円〜20,000円
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--ink);">
+            <input type="radio" name="priceMode" value="20000-"> 20,000円以上
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--ink);">
+            <input type="radio" name="priceMode" value="onsen"> 温泉宿（価格帯は問わない）
+          </label>
+        </div>
+      </div>
+      <div>
+        <label>評価で絞り込む</label>
+        <select id="minReview">
+          <option value="">指定なし</option>
+          <option value="3.0">★3.0以上</option>
+          <option value="3.5" selected>★3.5以上</option>
+          <option value="4.0">★4.0以上</option>
+          <option value="4.5">★4.5以上</option>
+        </select>
+      </div>
+      <div>
+        <label>最低レビュー件数</label>
+        <input type="text" id="minReviewCount" value="30" placeholder="例：30">
+      </div>
     </div>
 
     <div class="actions">
       <button id="runBtn">検索する</button>
       <span class="status" id="statusMsg">接続設定から始めてください</span>
     </div>
-
-    <details class="advanced">
-      <summary>詳細条件</summary>
-      <div class="grid" style="margin-top:14px;">
-        <div>
-          <label>価格帯（下限・円）</label>
-          <input type="text" id="minCharge" value="5000" placeholder="例：3000">
-        </div>
-        <div>
-          <label>価格帯（上限・円）</label>
-          <input type="text" id="maxCharge" placeholder="例：15000">
-        </div>
-        <div>
-          <label>評価で絞り込む</label>
-          <select id="minReview">
-            <option value="">指定なし</option>
-            <option value="3.0">★3.0以上</option>
-            <option value="3.5" selected>★3.5以上</option>
-            <option value="4.0">★4.0以上</option>
-            <option value="4.5">★4.5以上</option>
-          </select>
-        </div>
-        <div>
-          <label>最低レビュー件数</label>
-          <input type="text" id="minReviewCount" value="30" placeholder="例：30">
-        </div>
-      </div>
-      <div class="checkrow" style="margin-top:14px;">
-        <input type="checkbox" id="onsenOnly">
-        <label for="onsenOnly" style="margin:0;">温泉宿に絞り込む（ビジネスホテル・カプセル系を除外）</label>
-      </div>
-    </details>
 
     <details class="advanced">
       <summary>駅・地名で絞り込む（任意）</summary>
@@ -913,9 +912,15 @@ async function runSearch(){
   const detailCode = document.getElementById('areaDetailSelect').value;
   const checkin = document.getElementById('checkin').value;
   const checkout = document.getElementById('checkout').value;
-  const onsenOnly = document.getElementById('onsenOnly').checked;
-  const minCharge = document.getElementById('minCharge').value.trim();
-  const maxCharge = document.getElementById('maxCharge').value.trim();
+  const priceMode = (document.querySelector('input[name="priceMode"]:checked') || {}).value || '5000-10000';
+  let onsenOnly = false, minCharge = '', maxCharge = '';
+  if(priceMode === 'onsen'){
+    onsenOnly = true;
+  } else {
+    const [lo, hi] = priceMode.split('-');
+    minCharge = lo || '';
+    maxCharge = hi || '';
+  }
   const minReview = parseFloat(document.getElementById('minReview').value) || 0;
   const minReviewCount = parseInt(document.getElementById('minReviewCount').value) || 0;
   const narrowStationIdx = document.getElementById('narrowStation').value;
