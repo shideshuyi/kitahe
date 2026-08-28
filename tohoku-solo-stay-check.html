@@ -419,6 +419,10 @@
 
   <div class="empty" id="emptyMsg">まだ検索していません。条件を入力して「検索する」を押してください。</div>
 
+  <div style="text-align:center; font-size:.68rem; color:var(--mist); margin-top:24px;">
+    build: 2026-08-29-geocode-mismatch-warning
+  </div>
+
 </div>
 
 <script>
@@ -585,8 +589,16 @@ async function geocodeLocation(){
     }
     const place = data[0];
     window.__freeLocation = { lat: parseFloat(place.lat), lng: parseFloat(place.lon), displayName: place.display_name };
-    resultEl.textContent = `✓ この場所として検索します: ${place.display_name}（緯度${place.lat} / 経度${place.lon}）`;
-    resultEl.style.color = 'var(--ink)';
+
+    // 選んでいる都道府県と、検索結果の都道府県が食い違っていないか確認する
+    const prefLabel = document.getElementById('prefSelect').selectedOptions[0]?.textContent || '';
+    const prefNameOnly = prefLabel.replace(/[都道府県]$/,''); // 「宮城県」→「宮城」
+    const mismatchWarning = (prefNameOnly && !place.display_name.includes(prefNameOnly))
+      ? `　⚠ 選んでいる都道府県（${prefLabel}）と結果の場所が違う可能性があります。内容をよく確認してください。`
+      : '';
+
+    resultEl.textContent = `✓ この場所として検索します: ${place.display_name}（緯度${place.lat} / 経度${place.lon}）${mismatchWarning}`;
+    resultEl.style.color = mismatchWarning ? '#a3402a' : 'var(--ink)';
   }catch(err){
     resultEl.textContent = 'エラー: ' + err.message + '（Nominatimが混雑している可能性があります。少し待って再試行してください）';
     resultEl.style.color = 'var(--ink-soft)';
