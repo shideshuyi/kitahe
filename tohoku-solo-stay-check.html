@@ -702,6 +702,10 @@ async function loadAreaTree(){
 }
 
 function onAreaSmallChange(){
+  // 地区を切り替えたら、自由入力の古い場所が残って優先され続けないようにクリアする
+  window.__freeLocation = null;
+  document.getElementById('freeLocationQuery').value = '';
+  document.getElementById('geocodeResult').textContent = '';
   updateDetailSelect();
   updateStationSelect();
 }
