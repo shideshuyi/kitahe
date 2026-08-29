@@ -263,7 +263,7 @@
   <section class="panel">
     <div class="grid">
       <div>
-        <label>都道府県</label>
+        <label for="prefSelect">都道府県</label>
         <select id="prefSelect">
           <option value="aomori">青森県</option>
           <option value="iwate">岩手県</option>
@@ -274,19 +274,19 @@
         </select>
       </div>
       <div>
-        <label>地区</label>
-        <select id="areaSmallSelect"><option value="">読み込み中…</option></select>
+        <label for="areaSmallSelect">地区</label>
+        <select id="areaSmallSelect"><option value="">先にアプリID・アクセスキーを入力してください</option></select>
       </div>
       <div id="detailSelectWrap" style="display:none;">
-        <label>細かいエリア</label>
+        <label for="areaDetailSelect">細かいエリア</label>
         <select id="areaDetailSelect"><option value="">指定なし</option></select>
       </div>
       <div>
-        <label>チェックイン</label>
+        <label for="checkin">チェックイン</label>
         <input type="date" id="checkin">
       </div>
       <div>
-        <label>チェックアウト</label>
+        <label for="checkout">チェックアウト</label>
         <input type="date" id="checkout">
       </div>
       <div style="grid-column: span 2;">
@@ -307,7 +307,7 @@
         </div>
       </div>
       <div>
-        <label>評価で絞り込む</label>
+        <label for="minReview">評価で絞り込む</label>
         <select id="minReview">
           <option value="">指定なし</option>
           <option value="3.0">★3.0以上</option>
@@ -317,7 +317,7 @@
         </select>
       </div>
       <div>
-        <label>最低レビュー件数</label>
+        <label for="minReviewCount">最低レビュー件数</label>
         <input type="text" id="minReviewCount" value="30" placeholder="例：30">
       </div>
     </div>
@@ -331,13 +331,13 @@
       <summary>駅で絞り込む（任意）</summary>
       <div class="grid" style="margin-top:14px;">
         <div>
-          <label>駅を選ぶ</label>
+          <label for="narrowStation">駅を選ぶ</label>
           <select id="narrowStation">
             <option value="">絞り込まない（地区全体）</option>
           </select>
         </div>
         <div>
-          <label>半径km</label>
+          <label for="narrowKm">半径km</label>
           <select id="narrowKm">
             <option value="1">1km</option>
             <option value="2">2km</option>
@@ -351,11 +351,11 @@
       <summary>接続設定（初回のみ）</summary>
       <div class="grid" style="margin-top:14px;">
         <div>
-          <label>楽天アプリID</label>
+          <label for="appId">楽天アプリID</label>
           <input type="text" id="appId" placeholder="webservice.rakuten.co.jpで取得">
         </div>
         <div>
-          <label>アクセスキー</label>
+          <label for="accessKey">アクセスキー</label>
           <input type="text" id="accessKey" placeholder="アプリID発行時のもの">
         </div>
         <div>
@@ -379,7 +379,7 @@
     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
       <h2 style="margin:0;">検索結果</h2>
       <div>
-        <label style="display:inline; margin-right:8px;">並び替え</label>
+        <label for="sortOrder" style="display:inline; margin-right:8px;">並び替え</label>
         <select id="sortOrder" onchange="applyFiltersAndRender()" style="width:auto; display:inline-block;">
           <option value="price_asc">価格の安い順</option>
           <option value="price_desc">価格の高い順</option>
